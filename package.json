@@ -1,6 +1,6 @@
 {
   "name": "@eliteencoder/byoc-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Production-quality SDK for Livepeer BYOC video streaming with AI processing",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
