@@ -1,6 +1,6 @@
 {
   "name": "@eliteencoder/byoc-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Production-quality SDK for Livepeer BYOC video streaming with AI processing",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -28,6 +28,14 @@
   ],
   "author": "Livepeer",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eliteprox/byoc-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eliteprox/byoc-sdk/issues"
+  },
+  "homepage": "https://github.com/eliteprox/byoc-sdk#readme",
   "peerDependencies": {
     "react": ">=18.0.0"
   },
