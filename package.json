@@ -1,0 +1,51 @@
+{
+  "name": "@eliteencoder/byoc-sdk",
+  "version": "1.0.0",
+  "description": "Production-quality SDK for Livepeer BYOC video streaming with AI processing",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "livepeer",
+    "byoc",
+    "webrtc",
+    "whip",
+    "whep",
+    "streaming",
+    "ai",
+    "video"
+  ],
+  "author": "Livepeer",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.3.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "jsdom": "^26.1.0",
+    "react": "^18.3.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.5.3",
+    "vitest": "^1.0.4"
+  }
+}
