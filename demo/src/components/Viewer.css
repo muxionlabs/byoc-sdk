@@ -1,0 +1,78 @@
+.viewer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.viewer h2 {
+  font-size: 28px;
+  margin-bottom: 24px;
+  color: #f3f4f6;
+}
+
+.viewer h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: #d1d5db;
+}
+
+.btn-link {
+  background: transparent;
+  color: #60a5fa;
+  padding: 4px 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: #3b82f6;
+  background: transparent;
+  transform: none;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-player {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6b7280;
+  text-align: center;
+  padding: 20px;
+}
+
+.video-placeholder p {
+  margin: 0;
+}
+
+.video-placeholder .hint {
+  font-size: 14px;
+  color: #4b5563;
+}
+
+@media (max-width: 768px) {
+  .video-container {
+    min-height: 300px;
+  }
+}
+

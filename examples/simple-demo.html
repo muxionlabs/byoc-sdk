@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BYOC SDK - Simple Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+    }
+
+    .section h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .badge-connected {
+      background: #28a745;
+      color: white;
+    }
+
+    .badge-connecting {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .badge-disconnected {
+      background: #6c757d;
+      color: white;
+    }
+
+    .badge-error {
+      background: #dc3545;
+      color: white;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: #dc3545;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .info-item {
+      display: flex;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+    }
+
+    .info-label {
+      font-weight: 600;
+      min-width: 120px;
+      color: #666;
+    }
+
+    .info-value {
+      color: #333;
+      word-break: break-all;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border-left: 4px solid #dc3545;
+    }
+
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-left: 4px solid #17a2b8;
+    }
+
+    .events-container {
+      max-height: 400px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .event-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      border-left: 3px solid #667eea;
+    }
+
+    .event-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .log-container {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .log-entry {
+      margin-bottom: 5px;
+    }
+
+    .log-error { color: #f48771; }
+    .log-success { color: #89d185; }
+    .log-info { color: #4fc1ff; }
+    .log-warn { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎥 BYOC Stream SDK Demo</h1>
+      <p>Simple video and audio streaming with AI processing</p>
+    </div>
+
+    <div class="content">
+      <!-- Controls Section -->
+      <div class="section">
+        <h2>Stream Controls</h2>
+        <div class="status-bar">
+          <span id="statusBadge" class="badge badge-disconnected">Disconnected</span>
+          <span id="liveIndicator" class="live-indicator" style="display: none;">
+            <span class="live-dot"></span>
+            <span>LIVE</span>
+          </span>
+          <span id="streamIdDisplay" style="font-size: 12px; color: #666;"></span>
+        </div>
+
+        <div id="errorAlert" class="alert alert-error" style="display: none;"></div>
+
+        <div class="controls">
+          <input type="text" id="streamName" placeholder="Stream Name" readonly>
+          <input type="text" id="prompts" placeholder="Enter AI prompts..." value="Analyze this video stream">
+          <button id="startBtn" class="btn-primary" onclick="startStream()">▶️ Start Stream</button>
+          <button id="stopBtn" class="btn-danger" onclick="stopStream()" disabled>⏹️ Stop Stream</button>
+          <button id="updateBtn" class="btn-secondary" onclick="updatePrompts()" disabled>🔄 Update Prompts</button>
+        </div>
+      </div>
+
+      <!-- Video Preview -->
+      <div class="section">
+        <h2>Video Preview</h2>
+        <div class="video-container">
+          <video id="videoPreview" autoplay muted playsinline></video>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="section" id="statsSection" style="display: none;">
+        <h2>Stream Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Bitrate</div>
+            <div class="stat-value" id="statBitrate">0 kbps</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">FPS</div>
+            <div class="stat-value" id="statFps">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Resolution</div>
+            <div class="stat-value" id="statPacketLoss">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Latency</div>
+            <div class="stat-value" id="statRtt">0ms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stream Information -->
+      <div class="section" id="infoSection" style="display: none;">
+        <h2>Stream Information</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Stream Name:</span>
+            <span class="info-value" id="infoStreamName">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Stream ID:</span>
+            <span class="info-value" id="infoStreamId">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">WHEP URL:</span>
+            <span class="info-value" id="infoWhepUrl">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Data Stream:</span>
+            <span class="info-value" id="infoDataUrl">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Console Log -->
+      <div class="section">
+        <h2>Console Log</h2>
+        <div class="log-container" id="logContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load SDK from local build -->
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1"
+      }
+    }
+  </script>
+  <script type="module">
+    import { StreamPublisher } from '../dist/index.mjs'
+
+    // Configuration
+    const config = {
+      whipUrl: 'https://eliteencoder.net:8088/gateway/ai/stream/start',
+      whepUrl: 'https://eliteencoder.net:8088/mediamtx',
+      dataStreamUrl: 'https://eliteencoder.net:8088/gateway',
+      kafkaEventsUrl: 'https://eliteencoder.net:8088/kafka/events',
+      defaultPipeline: 'comfystream'
+    }
+
+    // Global state
+    let publisher = null
+    let streamInfo = null
+
+    // Initialize
+    function init() {
+      const streamName = `stream-${Date.now()}`
+      document.getElementById('streamName').value = streamName
+      
+      publisher = new StreamPublisher(config)
+      
+      // Setup event listeners
+      publisher.on('statusChange', handleStatusChange)
+      publisher.on('statsUpdate', handleStatsUpdate)
+      publisher.on('error', handleError)
+      publisher.on('streamStarted', handleStreamStarted)
+      publisher.on('mediaStreamReady', handleMediaReady)
+      publisher.on('streamStopped', handleStreamStopped)
+      
+      log('🚀 SDK initialized', 'info')
+    }
+
+    // Event handlers
+    function handleStatusChange(status) {
+      log(`📡 Status: ${status}`, 'info')
+      updateStatusBadge(status)
+    }
+
+    function handleStatsUpdate(stats) {
+      document.getElementById('statBitrate').textContent = `${(stats.bitrate / 1000).toFixed(2)} kbps`
+      document.getElementById('statFps').textContent = stats.fps
+      document.getElementById('statPacketLoss').textContent = stats.resolution || '-'
+      document.getElementById('statRtt').textContent = stats.latency ? `${stats.latency}ms` : 'N/A'
+      document.getElementById('statsSection').style.display = 'block'
+    }
+
+    function handleError(error) {
+      log(`❌ Error: ${error.message}`, 'error')
+      showError(error.message)
+    }
+
+    function handleStreamStarted(response) {
+      streamInfo = response
+      log('✅ Stream started successfully!', 'success')
+      
+      // Update UI
+      // streamName is not in response, use input value
+      const streamName = document.getElementById('streamName').value
+      document.getElementById('infoStreamName').textContent = streamName
+      document.getElementById('infoStreamId').textContent = response.streamId
+      document.getElementById('infoWhepUrl').textContent = response.whepUrl
+      document.getElementById('infoDataUrl').textContent = response.dataUrl
+      document.getElementById('infoSection').style.display = 'block'
+      document.getElementById('streamIdDisplay').textContent = `ID: ${response.streamId}`
+      
+      document.getElementById('startBtn').disabled = true
+      document.getElementById('stopBtn').disabled = false
+      document.getElementById('updateBtn').disabled = false
+      document.getElementById('liveIndicator').style.display = 'flex'
+    }
+
+    function handleMediaReady(stream) {
+      log('🎥 Media stream ready', 'success')
+      const video = document.getElementById('videoPreview')
+      video.srcObject = stream
+    }
+
+    function handleStreamStopped() {
+      log('⏹️ Stream stopped', 'info')
+      
+      document.getElementById('startBtn').disabled = false
+      document.getElementById('stopBtn').disabled = true
+      document.getElementById('updateBtn').disabled = true
+      document.getElementById('liveIndicator').style.display = 'none'
+      document.getElementById('statsSection').style.display = 'none'
+      document.getElementById('infoSection').style.display = 'none'
+      document.getElementById('streamIdDisplay').textContent = ''
+      
+      const video = document.getElementById('videoPreview')
+      video.srcObject = null
+    }
+
+    // UI update functions
+    function updateStatusBadge(status) {
+      const badge = document.getElementById('statusBadge')
+      badge.textContent = status.toUpperCase()
+      badge.className = 'badge badge-' + status
+    }
+
+    function showError(message) {
+      const alert = document.getElementById('errorAlert')
+      alert.textContent = message
+      alert.style.display = 'block'
+      setTimeout(() => {
+        alert.style.display = 'none'
+      }, 5000)
+    }
+
+    function log(message, type = 'info') {
+      const container = document.getElementById('logContainer')
+      const entry = document.createElement('div')
+      entry.className = `log-entry log-${type}`
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`
+      container.appendChild(entry)
+      container.scrollTop = container.scrollHeight
+    }
+
+    // Stream control functions
+    window.startStream = async function() {
+      try {
+        log('🎬 Starting stream...', 'info')
+        const streamName = document.getElementById('streamName').value
+        const prompts = document.getElementById('prompts').value
+        
+        await publisher.start({
+          streamName,
+          pipeline: 'comfystream-017',
+          width: 1280,
+          height: 720,
+          fpsLimit: 30,
+          enableVideoIngress: true,
+          enableAudioIngress: true,
+          enableVideoEgress: true,
+          enableAudioEgress: true,
+          enableDataOutput: true,
+          customParams: { prompts }
+        })
+      } catch (error) {
+        log(`❌ Failed to start: ${error.message}`, 'error')
+        showError(error.message)
+      }
+    }
+
+    window.stopStream = async function() {
+      try {
+        log('⏹️ Stopping stream...', 'info')
+        await publisher.stop()
+      } catch (error) {
+        log(`❌ Failed to stop: ${error.message}`, 'error')
+      }
+    }
+
+    window.updatePrompts = async function() {
+      try {
+        const prompts = document.getElementById('prompts').value
+        log(`🔄 Updating prompts: "${prompts}"`, 'info')
+        
+        await publisher.updateStream({
+          params: { prompts }
+        })
+        
+        log('✅ Prompts updated successfully', 'success')
+      } catch (error) {
+        log(`❌ Failed to update: ${error.message}`, 'error')
+      }
+    }
+
+    // Initialize on load
+    init()
+  </script>
+</body>
+</html>
+

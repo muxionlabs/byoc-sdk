@@ -23,8 +23,8 @@ export function constructWhipUrl(
 ): string {
   const url = new URL(baseUrl)
 
-  // Add stream name to the path if provided
-  if (streamName && streamName.trim()) {
+  // Add stream name to the path if provided, unless the URL ends in 'start' or 'whip'
+  if (streamName && streamName.trim() && !baseUrl.endsWith('/start') && !baseUrl.endsWith('/whip')) {
     const safeName = streamName.trim()
     url.pathname += `/${safeName}/whip`
   }

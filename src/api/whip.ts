@@ -6,6 +6,76 @@ import { WhipOfferResponse } from '../types'
 import { retryWithBackoff } from '../utils/retry'
 
 /**
+ * Initializes a stream session via the gateway
+ */
+export async function initializeGatewayStream(
+  url: string,
+  options: any
+): Promise<{
+  whipUrl: string
+  playbackUrl: string | null
+  dataUrl: string | null
+}> {
+  const params = {
+    height: options.height,
+    width: options.width,
+    ...options.customParams,
+  }
+
+  const reqParams = {
+    enable_video_ingress: options.enableVideoIngress,
+    enable_video_egress: options.enableVideoEgress,
+    enable_data_output: options.enableDataOutput
+  }
+
+  const req = {
+    request: "{}",
+    parameters: JSON.stringify(reqParams),
+    capability: options.pipeline,
+    timeout_seconds: 120
+  }
+  const reqStr = JSON.stringify(req)
+
+  const startReq = {
+    stream_name: options.streamName,
+    params: JSON.stringify(params),
+    stream_id: options.streamId || "",
+    rtmp_output: "",
+  }
+
+  console.log(`Initializing gateway stream at: ${url}`)
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+      "Livepeer": btoa(reqStr)
+    },
+    body: JSON.stringify(startReq)
+  })
+
+  if (!response.ok) {
+    let errorBody = ''
+    try {
+      errorBody = await response.text()
+    } catch (e) {
+      // Ignore if we can't read the body
+    }
+    const errorMsg = errorBody
+      ? `Failed to initialize stream (${response.status}): ${errorBody}`
+      : `Failed to initialize stream (${response.status})`
+    throw new Error(errorMsg)
+  }
+
+  const data = await response.json()
+  return {
+    whipUrl: data.whip_url,
+    playbackUrl: data.playback_url,
+    dataUrl: data.data_url
+  }
+}
+
+/**
  * Sends a WHIP offer with retry logic
  */
 export async function sendWhipOffer(

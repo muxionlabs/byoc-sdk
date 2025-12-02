@@ -33,7 +33,7 @@ const config: StreamConfig = {
   whepUrl: 'https://your-server.com/mediamtx',
   dataStreamUrl: 'https://your-server.com/gateway',
   kafkaEventsUrl: 'https://your-server.com/kafka/events',
-  defaultPipeline: 'video-analysis'
+  defaultPipeline: 'comfystream'
 }
 
 const publisher = new StreamPublisher(config)
@@ -41,7 +41,7 @@ const publisher = new StreamPublisher(config)
 // Start streaming
 const streamInfo = await publisher.start({
   streamName: 'my-stream',
-  pipeline: 'video-analysis',
+  pipeline: 'comfystream',
   width: 1280,
   height: 720,
   fpsLimit: 30,
@@ -129,12 +129,12 @@ function PublisherComponent() {
   })
 
   const handleStart = async () => {
-    await start({
-      streamName: 'my-stream',
-      pipeline: 'video-analysis',
-      width: 1280,
-      height: 720
-    })
+await start({
+  streamName: 'my-stream',
+  pipeline: 'comfystream',
+  width: 1280,
+  height: 720
+})
   }
 
   return (

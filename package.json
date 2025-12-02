@@ -1,10 +1,22 @@
 {
   "name": "@eliteencoder/byoc-sdk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Production-quality SDK for Livepeer BYOC video streaming with AI processing",
   "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "files": [
     "dist",
     "README.md"
@@ -14,7 +26,11 @@
     "dev": "tsup --watch",
     "test": "vitest",
     "lint": "eslint src --ext .ts,.tsx",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "demo:dev": "cd demo && npm install && npm run dev",
+    "demo:build": "cd demo && npm install && npm run build",
+    "demo:preview": "cd demo && npm run preview",
+    "serve:examples": "npx http-server . -o examples/simple-demo.html -p 3005"
   },
   "keywords": [
     "livepeer",

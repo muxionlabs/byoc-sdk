@@ -23,12 +23,12 @@ const config: StreamConfig = {
   whepUrl: 'https://your-server.com/mediamtx',
   dataStreamUrl: 'https://your-server.com/gateway',
   kafkaEventsUrl: 'https://your-server.com/kafka/events',
-  defaultPipeline: 'video-analysis'
+  defaultPipeline: 'comfystream'
 }
 
 export function FullExample() {
   const [streamName, setStreamName] = useState(`stream-${Date.now()}`)
-  const [pipeline, setPipeline] = useState('video-analysis')
+  const [pipeline, setPipeline] = useState('comfystream')
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // Publisher

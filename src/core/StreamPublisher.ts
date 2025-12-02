@@ -15,8 +15,8 @@ import {
   ConnectionError
 } from '../types'
 import { EventEmitter } from '../utils/EventEmitter'
-import { constructWhipUrl, generateStreamId } from '../utils/urls'
-import { sendWhipOffer, stopStream } from '../api/whip'
+import { generateStreamId } from '../utils/urls'
+import { sendWhipOffer, stopStream, initializeGatewayStream } from '../api/whip'
 import { sendStreamUpdate } from '../api/stream-update'
 
 export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
@@ -123,18 +123,15 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       // Wait for ICE gathering
       await this.waitForICEGathering(this.peerConnection)
 
-      // Construct WHIP URL
-      const whipUrl = constructWhipUrl(
-        this.config.whipUrl,
-        options.streamName,
-        options.pipeline,
-        options.width,
-        options.height,
-        options.customParams,
-        streamId
-      )
+      // Initialize session via gateway to get the actual WHIP URL
+      const initData = await initializeGatewayStream(this.config.whipUrl, options)
+      const whipUrl = initData.whipUrl
+      
+      // Use returned URLs or fallbacks
+      const playbackUrl = initData.playbackUrl
+      const dataUrl = initData.dataUrl
 
-      // Send WHIP offer
+      // Send WHIP offer to the URL returned by the gateway
       const response = await sendWhipOffer(whipUrl, this.peerConnection.localDescription!.sdp)
 
       // Set remote description
@@ -146,9 +143,9 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       // Build stream info
       this.streamInfo = {
         streamId: response.streamId || streamId,
-        playbackUrl: response.playbackUrl,
-        whepUrl: response.playbackUrl,
-        dataUrl: response.playbackUrl ? this.buildDataUrl(options.streamName) : null,
+        playbackUrl: response.playbackUrl || playbackUrl,
+        whepUrl: response.playbackUrl || playbackUrl,
+        dataUrl: response.playbackUrl ? (dataUrl || this.buildDataUrl(options.streamName)) : null,
         statusUrl: response.playbackUrl ? this.buildStatusUrl(response.streamId || streamId) : null,
         updateUrl: response.playbackUrl ? this.buildUpdateUrl(response.streamId || streamId) : null,
         rtmpUrl: null,

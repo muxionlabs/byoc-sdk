@@ -28,18 +28,18 @@ describe('URL utilities', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
         'my-stream',
-        'video-analysis'
+        'comfystream'
       )
 
       expect(url).toContain('/my-stream/whip')
-      expect(url).toContain('pipeline=video-analysis')
+      expect(url).toContain('pipeline=comfystream')
     })
 
     it('should include resolution parameters', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
         'my-stream',
-        'video-analysis',
+        'comfystream',
         1280,
         720
       )
@@ -53,7 +53,7 @@ describe('URL utilities', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
         'my-stream',
-        'video-analysis',
+        'comfystream',
         undefined,
         undefined,
         { prompts: 'test prompt', threshold: 0.5 }
@@ -69,7 +69,7 @@ describe('URL utilities', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
         'my-stream',
-        'video-analysis',
+        'comfystream',
         undefined,
         undefined,
         undefined,
