@@ -121,11 +121,17 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
    * Create and configure peer connection
    */
   private async createPeerConnection(): Promise<RTCPeerConnection> {
+    // Use configured ICE servers or defaults
+    const iceServers = this.config.iceServers || [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' }
+    ]
+
     const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ],
+      iceServers,
       iceTransportPolicy: 'all',
       bundlePolicy: 'max-bundle',
       rtcpMuxPolicy: 'require'

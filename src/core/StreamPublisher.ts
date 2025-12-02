@@ -25,6 +25,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
   private localStream: MediaStream | null = null
   private connectionStatus: ConnectionStatus = 'disconnected'
   private streamInfo: StreamStartResponse | null = null
+  private currentPipeline: string | null = null
   private statsInterval: number | null = null
   private lastStats = {
     time: 0,
@@ -102,6 +103,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
 
     try {
       this.setStatus('connecting')
+      this.currentPipeline = options.pipeline
 
       // Generate stream ID if not provided
       const streamId = options.streamId || generateStreamId()
@@ -126,10 +128,6 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       // Initialize session via gateway to get the actual WHIP URL
       const initData = await initializeGatewayStream(this.config.whipUrl, options)
       const whipUrl = initData.whipUrl
-      
-      // Use returned URLs or fallbacks
-      const playbackUrl = initData.playbackUrl
-      const dataUrl = initData.dataUrl
 
       // Send WHIP offer to the URL returned by the gateway
       const response = await sendWhipOffer(whipUrl, this.peerConnection.localDescription!.sdp)
@@ -141,14 +139,26 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       })
 
       // Build stream info
+      const gatewayStreamId = initData.streamId || streamId
+      const resolvedStreamId = response.streamId || gatewayStreamId || streamId
+      const resolvedPlaybackUrl = response.playbackUrl || initData.playbackUrl || null
+      const resolvedWhepUrl = initData.whepUrl || resolvedPlaybackUrl || this.config.whepUrl || null
+      const resolvedDataUrl =
+        initData.dataUrl || (options.streamName ? this.buildDataUrl(options.streamName) : null)
+      const resolvedStatusUrl =
+        initData.statusUrl || (resolvedStreamId ? this.buildStatusUrl(resolvedStreamId) : null)
+      const resolvedUpdateUrl =
+        initData.updateUrl || (resolvedStreamId ? this.buildUpdateUrl(resolvedStreamId) : null)
+      const resolvedRtmpUrl = initData.rtmpUrl || null
+
       this.streamInfo = {
-        streamId: response.streamId || streamId,
-        playbackUrl: response.playbackUrl || playbackUrl,
-        whepUrl: response.playbackUrl || playbackUrl,
-        dataUrl: response.playbackUrl ? (dataUrl || this.buildDataUrl(options.streamName)) : null,
-        statusUrl: response.playbackUrl ? this.buildStatusUrl(response.streamId || streamId) : null,
-        updateUrl: response.playbackUrl ? this.buildUpdateUrl(response.streamId || streamId) : null,
-        rtmpUrl: null,
+        streamId: resolvedStreamId,
+        playbackUrl: resolvedPlaybackUrl,
+        whepUrl: resolvedWhepUrl,
+        dataUrl: resolvedDataUrl,
+        statusUrl: resolvedStatusUrl,
+        updateUrl: resolvedUpdateUrl,
+        rtmpUrl: resolvedRtmpUrl,
         locationHeader: response.locationHeader
       }
 
@@ -182,7 +192,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
         await stopStream(
           this.streamInfo.streamId,
           this.config.whipUrl,
-          this.config.defaultPipeline || ''
+          this.resolveActivePipeline('stop')
         )
       }
 
@@ -203,12 +213,39 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       throw new StreamError('No active stream to update')
     }
 
+    // Width/height are immutable once a stream starts, so strip them from updates
+    const sanitizedParams: Record<string, any> = { ...(options.params ?? {}) }
+    const immutableFields = ['width', 'height']
+    const removedFields: string[] = []
+
+    immutableFields.forEach((field) => {
+      if (field in sanitizedParams) {
+        removedFields.push(field)
+        delete sanitizedParams[field]
+      }
+    })
+
+    if (removedFields.length > 0) {
+      console.warn(
+        `[StreamPublisher] Ignoring immutable stream update fields: ${removedFields.join(
+          ', '
+        )}. Restart the stream to change resolution.`
+      )
+    }
+
+    if (Object.keys(sanitizedParams).length === 0) {
+      throw new StreamError(
+        'No mutable parameters provided for update. Restart the stream to change resolution.',
+        'INVALID_UPDATE_PARAMS'
+      )
+    }
+
     try {
       await sendStreamUpdate(
         this.streamInfo.updateUrl,
         this.streamInfo.streamId,
-        this.config.defaultPipeline || '',
-        options.params
+        this.resolveActivePipeline('update'),
+        sanitizedParams
       )
       this.emit('streamUpdated', undefined)
     } catch (error) {
@@ -269,11 +306,17 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
   private async createPeerConnection(
     stream: MediaStream
   ): Promise<RTCPeerConnection> {
+    // Use configured ICE servers or defaults
+    const iceServers = this.config.iceServers || [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' }
+    ]
+
     const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ],
+      iceServers,
       iceTransportPolicy: 'all',
       bundlePolicy: 'max-bundle',
       rtcpMuxPolicy: 'require'
@@ -411,6 +454,19 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
   }
 
   /**
+   * Resolve the active pipeline for control-plane requests
+   */
+  private resolveActivePipeline(action: 'stop' | 'update'): string {
+    const pipeline = this.currentPipeline || this.config.defaultPipeline
+    if (!pipeline) {
+      throw new StreamError(
+        `No pipeline configured for ${action}. Provide config.defaultPipeline or include a pipeline when starting the stream.`
+      )
+    }
+    return pipeline
+  }
+
+  /**
    * Set connection status and emit event
    */
   private setStatus(status: ConnectionStatus): void {
@@ -441,6 +497,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
 
     this.streamInfo = null
     this.setStatus('disconnected')
+    this.currentPipeline = null
   }
 }
 

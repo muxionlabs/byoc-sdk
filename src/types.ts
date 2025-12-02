@@ -17,6 +17,8 @@ export interface StreamConfig {
   kafkaEventsUrl: string
   /** Default pipeline name */
   defaultPipeline?: string
+  /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
+  iceServers?: RTCIceServer[]
 }
 
 export interface StreamStartOptions {
@@ -55,7 +57,7 @@ export interface StreamStartOptions {
 }
 
 export interface StreamUpdateOptions {
-  /** Custom parameters to update */
+  /** Custom parameters to update (width/height require restarting the stream) */
   params: Record<string, any>
 }
 

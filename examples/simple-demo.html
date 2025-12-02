@@ -4,318 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BYOC SDK - Simple Demo</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
-    }
-
-    .header p {
-      opacity: 0.9;
-      font-size: 14px;
-    }
-
-    .content {
-      padding: 30px;
-    }
-
-    .section {
-      margin-bottom: 30px;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 12px;
-    }
-
-    .section h2 {
-      font-size: 20px;
-      margin-bottom: 15px;
-      color: #333;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    input, select {
-      flex: 1;
-      min-width: 200px;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s;
-    }
-
-    input:focus, select:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-danger {
-      background: #dc3545;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #c82333;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 15px;
-      padding: 12px;
-      background: white;
-      border-radius: 8px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .badge-connected {
-      background: #28a745;
-      color: white;
-    }
-
-    .badge-connecting {
-      background: #ffc107;
-      color: #333;
-    }
-
-    .badge-disconnected {
-      background: #6c757d;
-      color: white;
-    }
-
-    .badge-error {
-      background: #dc3545;
-      color: white;
-    }
-
-    .live-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .live-dot {
-      width: 10px;
-      height: 10px;
-      background: #dc3545;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .video-container {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    video {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-    }
-
-    .stat-card {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      border-left: 4px solid #667eea;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: #666;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .info-grid {
-      display: grid;
-      gap: 10px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .info-item {
-      display: flex;
-      padding: 10px;
-      background: white;
-      border-radius: 6px;
-    }
-
-    .info-label {
-      font-weight: 600;
-      min-width: 120px;
-      color: #666;
-    }
-
-    .info-value {
-      color: #333;
-      word-break: break-all;
-    }
-
-    .alert {
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-
-    .alert-error {
-      background: #f8d7da;
-      color: #721c24;
-      border-left: 4px solid #dc3545;
-    }
-
-    .alert-info {
-      background: #d1ecf1;
-      color: #0c5460;
-      border-left: 4px solid #17a2b8;
-    }
-
-    .events-container {
-      max-height: 400px;
-      overflow-y: auto;
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-    }
-
-    .event-item {
-      padding: 10px;
-      margin-bottom: 10px;
-      background: #f8f9fa;
-      border-radius: 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      border-left: 3px solid #667eea;
-    }
-
-    .event-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .log-container {
-      max-height: 300px;
-      overflow-y: auto;
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 15px;
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    .log-entry {
-      margin-bottom: 5px;
-    }
-
-    .log-error { color: #f48771; }
-    .log-success { color: #89d185; }
-    .log-info { color: #4fc1ff; }
-    .log-warn { color: #dcdcaa; }
-  </style>
+  <link rel="stylesheet" href="simple-demo.css">
 </head>
 <body>
   <div class="container">
@@ -325,7 +14,26 @@
     </div>
 
     <div class="content">
-      <!-- Controls Section -->
+      <!-- Video Preview + Output Viewer (PiP) -->
+      <div class="section">
+        <h2>Video Preview</h2>
+        <div class="video-container">
+          <!-- Main output / processed stream -->
+          <video id="outputVideo" autoplay playsinline controls></video>
+
+          <!-- Small local preview in corner -->
+          <video id="videoPreview" class="pip-preview" autoplay muted playsinline></video>
+
+          <div id="statsOverlay" class="video-stats-overlay">
+            <div class="stat-line"><strong>Bitrate:</strong> <span id="statBitrate">0 kbps</span></div>
+            <div class="stat-line"><strong>FPS:</strong> <span id="statFps">0</span></div>
+            <div class="stat-line"><strong>Res:</strong> <span id="statResolution">-</span></div>
+            <div class="stat-line"><strong>Latency:</strong> <span id="statLatency">N/A</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stream Controls -->
       <div class="section">
         <h2>Stream Controls</h2>
         <div class="status-bar">
@@ -335,70 +43,34 @@
             <span>LIVE</span>
           </span>
           <span id="streamIdDisplay" style="font-size: 12px; color: #666;"></span>
+          <div class="mini-info">
+            <span id="miniWhep"></span>
+            <span id="miniData"></span>
+          </div>
         </div>
 
         <div id="errorAlert" class="alert alert-error" style="display: none;"></div>
 
         <div class="controls">
-          <input type="text" id="streamName" placeholder="Stream Name" readonly>
-          <input type="text" id="prompts" placeholder="Enter AI prompts..." value="Analyze this video stream">
           <button id="startBtn" class="btn-primary" onclick="startStream()">▶️ Start Stream</button>
           <button id="stopBtn" class="btn-danger" onclick="stopStream()" disabled>⏹️ Stop Stream</button>
           <button id="updateBtn" class="btn-secondary" onclick="updatePrompts()" disabled>🔄 Update Prompts</button>
         </div>
-      </div>
-
-      <!-- Video Preview -->
-      <div class="section">
-        <h2>Video Preview</h2>
-        <div class="video-container">
-          <video id="videoPreview" autoplay muted playsinline></video>
+        
+        <div class="controls" style="margin-top: 10px;">
+          <input type="text" id="streamName" placeholder="Stream Name" readonly>
+          <select id="pipelineSelect">
+            <option value="comfystream" selected>comfystream</option>
+            <option value="comfystream-017">comfystream-017</option>
+            <option value="video-analysis">video-analysis</option>
+          </select>
         </div>
-      </div>
-
-      <!-- Statistics -->
-      <div class="section" id="statsSection" style="display: none;">
-        <h2>Stream Statistics</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Bitrate</div>
-            <div class="stat-value" id="statBitrate">0 kbps</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">FPS</div>
-            <div class="stat-value" id="statFps">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Resolution</div>
-            <div class="stat-value" id="statPacketLoss">-</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Latency</div>
-            <div class="stat-value" id="statRtt">0ms</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stream Information -->
-      <div class="section" id="infoSection" style="display: none;">
-        <h2>Stream Information</h2>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Stream Name:</span>
-            <span class="info-value" id="infoStreamName">-</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Stream ID:</span>
-            <span class="info-value" id="infoStreamId">-</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">WHEP URL:</span>
-            <span class="info-value" id="infoWhepUrl">-</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Data Stream:</span>
-            <span class="info-value" id="infoDataUrl">-</span>
-          </div>
+        
+        <div class="controls" style="margin-top: 10px;">
+          <select id="savedPromptsSelect" onchange="loadSavedPrompt()">
+            <option value="">Custom Prompt...</option>
+          </select>
+          <input type="text" id="prompts" placeholder="Enter AI prompts or select saved prompt..." value="">
         </div>
       </div>
 
@@ -419,7 +91,7 @@
     }
   </script>
   <script type="module">
-    import { StreamPublisher } from '../dist/index.mjs'
+    import { StreamPublisher, StreamViewer } from '../dist/index.mjs'
 
     // Configuration
     const config = {
@@ -433,6 +105,8 @@
     // Global state
     let publisher = null
     let streamInfo = null
+    let savedWorkflows = []
+    let viewer = null
 
     // Initialize
     function init() {
@@ -449,7 +123,58 @@
       publisher.on('mediaStreamReady', handleMediaReady)
       publisher.on('streamStopped', handleStreamStopped)
       
+      // Load saved workflows
+      loadSavedWorkflows()
+      
       log('🚀 SDK initialized', 'info')
+    }
+
+    // Load saved workflows from API
+    async function loadSavedWorkflows() {
+      try {
+        const response = await fetch('https://eliteencoder.net:8088/workflows/')
+        if (response.ok) {
+          savedWorkflows = await response.json()
+          const select = document.getElementById('savedPromptsSelect')
+          
+          // Clear existing options except first
+          while (select.options.length > 1) {
+            select.remove(1)
+          }
+          
+          // Add workflow options
+          savedWorkflows.forEach(workflow => {
+            const option = document.createElement('option')
+            option.value = workflow.id
+            option.textContent = workflow.name
+            select.appendChild(option)
+          })
+          
+          log(`✅ Loaded ${savedWorkflows.length} saved workflows`, 'success')
+        } else {
+          log('⚠️ Could not load saved workflows', 'warn')
+        }
+      } catch (error) {
+        log('⚠️ Could not connect to workflows API', 'warn')
+      }
+    }
+
+    // Load selected workflow into prompts field
+    window.loadSavedPrompt = function() {
+      const select = document.getElementById('savedPromptsSelect')
+      const selectedId = select.value
+      
+      if (!selectedId) {
+        // Custom prompt selected, clear the field
+        document.getElementById('prompts').value = ''
+        return
+      }
+      
+      const workflow = savedWorkflows.find(w => w.id === selectedId)
+      if (workflow) {
+        document.getElementById('prompts').value = workflow.prompts
+        log(`📋 Loaded workflow: ${workflow.name}`, 'info')
+      }
     }
 
     // Event handlers
@@ -461,9 +186,9 @@
     function handleStatsUpdate(stats) {
       document.getElementById('statBitrate').textContent = `${(stats.bitrate / 1000).toFixed(2)} kbps`
       document.getElementById('statFps').textContent = stats.fps
-      document.getElementById('statPacketLoss').textContent = stats.resolution || '-'
-      document.getElementById('statRtt').textContent = stats.latency ? `${stats.latency}ms` : 'N/A'
-      document.getElementById('statsSection').style.display = 'block'
+      document.getElementById('statResolution').textContent = stats.resolution || '-'
+      document.getElementById('statLatency').textContent = stats.latency ? `${stats.latency}ms` : 'N/A'
+      document.getElementById('statsOverlay').classList.add('visible')
     }
 
     function handleError(error) {
@@ -471,24 +196,23 @@
       showError(error.message)
     }
 
-    function handleStreamStarted(response) {
+    async function handleStreamStarted(response) {
       streamInfo = response
       log('✅ Stream started successfully!', 'success')
       
-      // Update UI
-      // streamName is not in response, use input value
+      // Update compact stream info
       const streamName = document.getElementById('streamName').value
-      document.getElementById('infoStreamName').textContent = streamName
-      document.getElementById('infoStreamId').textContent = response.streamId
-      document.getElementById('infoWhepUrl').textContent = response.whepUrl
-      document.getElementById('infoDataUrl').textContent = response.dataUrl
-      document.getElementById('infoSection').style.display = 'block'
-      document.getElementById('streamIdDisplay').textContent = `ID: ${response.streamId}`
+      document.getElementById('streamIdDisplay').textContent = `LIVE ID: ${response.streamId}`
+      document.getElementById('miniWhep').textContent = response.whepUrl ? `WHEP: ${response.whepUrl}` : ''
+      document.getElementById('miniData').textContent = response.dataUrl ? `DATA: ${response.dataUrl}` : ''
       
       document.getElementById('startBtn').disabled = true
       document.getElementById('stopBtn').disabled = false
       document.getElementById('updateBtn').disabled = false
       document.getElementById('liveIndicator').style.display = 'flex'
+
+      // Start output viewer
+      await startViewerForCurrentStream(response)
     }
 
     function handleMediaReady(stream) {
@@ -497,19 +221,33 @@
       video.srcObject = stream
     }
 
-    function handleStreamStopped() {
+    async function handleStreamStopped() {
       log('⏹️ Stream stopped', 'info')
       
       document.getElementById('startBtn').disabled = false
       document.getElementById('stopBtn').disabled = true
       document.getElementById('updateBtn').disabled = true
       document.getElementById('liveIndicator').style.display = 'none'
-      document.getElementById('statsSection').style.display = 'none'
-      document.getElementById('infoSection').style.display = 'none'
+      document.getElementById('statsOverlay').classList.remove('visible')
       document.getElementById('streamIdDisplay').textContent = ''
+      document.getElementById('miniWhep').textContent = ''
+      document.getElementById('miniData').textContent = ''
       
       const video = document.getElementById('videoPreview')
       video.srcObject = null
+
+      const outputVideo = document.getElementById('outputVideo')
+      if (outputVideo) {
+        outputVideo.srcObject = null
+      }
+
+      if (viewer) {
+        try {
+          await viewer.stop()
+        } catch (e) {
+          // ignore
+        }
+      }
     }
 
     // UI update functions
@@ -537,6 +275,31 @@
       container.scrollTop = container.scrollHeight
     }
 
+    async function startViewerForCurrentStream(response) {
+      try {
+        const whepUrl = response.whepUrl || response.playbackUrl || config.whepUrl
+        if (!whepUrl) {
+          log('⚠️ No WHEP URL available, cannot start viewer', 'warn')
+          return
+        }
+
+        const outputVideo = document.getElementById('outputVideo') || document.getElementById('videoPreview')
+
+        if (!viewer) {
+          viewer = new StreamViewer(config)
+        }
+        viewer.setVideoElement(outputVideo)
+
+        await viewer.start({
+          whepUrl,
+          playbackUrl: response.playbackUrl || undefined
+        })
+        log('🎥 Output viewer started', 'info')
+      } catch (error) {
+        log(`⚠️ Failed to start viewer: ${error.message}`, 'warn')
+      }
+    }
+
     // Stream control functions
     window.startStream = async function() {
       try {
@@ -546,7 +309,7 @@
         
         await publisher.start({
           streamName,
-          pipeline: 'comfystream-017',
+          pipeline: document.getElementById('pipelineSelect').value,
           width: 1280,
           height: 720,
           fpsLimit: 30,

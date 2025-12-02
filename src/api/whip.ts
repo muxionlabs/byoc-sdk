@@ -2,20 +2,30 @@
  * WHIP (WebRTC-HTTP Ingestion Protocol) API client
  */
 
-import { WhipOfferResponse } from '../types'
+import { StreamStartOptions, WhipOfferResponse } from '../types'
 import { retryWithBackoff } from '../utils/retry'
 
 /**
  * Initializes a stream session via the gateway
  */
-export async function initializeGatewayStream(
-  url: string,
-  options: any
-): Promise<{
+export interface GatewayInitializationResult {
   whipUrl: string
   playbackUrl: string | null
   dataUrl: string | null
-}> {
+  statusUrl: string | null
+  updateUrl: string | null
+  whepUrl: string | null
+  rtmpUrl: string | null
+  streamId: string | null
+}
+
+export async function initializeGatewayStream(
+  url: string,
+  options: StreamStartOptions
+): Promise<GatewayInitializationResult> {
+  const resolveFlag = (value: boolean | undefined, defaultValue: boolean = true) =>
+    typeof value === 'boolean' ? value : defaultValue
+
   const params = {
     height: options.height,
     width: options.width,
@@ -23,9 +33,11 @@ export async function initializeGatewayStream(
   }
 
   const reqParams = {
-    enable_video_ingress: options.enableVideoIngress,
-    enable_video_egress: options.enableVideoEgress,
-    enable_data_output: options.enableDataOutput
+    enable_video_ingress: resolveFlag(options.enableVideoIngress),
+    enable_audio_ingress: resolveFlag(options.enableAudioIngress),
+    enable_video_egress: resolveFlag(options.enableVideoEgress),
+    enable_audio_egress: resolveFlag(options.enableAudioEgress),
+    enable_data_output: resolveFlag(options.enableDataOutput)
   }
 
   const req = {
@@ -70,8 +82,13 @@ export async function initializeGatewayStream(
   const data = await response.json()
   return {
     whipUrl: data.whip_url,
-    playbackUrl: data.playback_url,
-    dataUrl: data.data_url
+    playbackUrl: data.playback_url ?? null,
+    dataUrl: data.data_url ?? null,
+    statusUrl: data.status_url ?? null,
+    updateUrl: data.update_url ?? null,
+    whepUrl: data.whep_url ?? null,
+    rtmpUrl: data.rtmp_url ?? null,
+    streamId: data.stream_id ?? null
   }
 }
 

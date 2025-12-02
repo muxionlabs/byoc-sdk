@@ -56,6 +56,11 @@ await publisher.start({
   enableDataOutput: true,
   customParams: { prompts: 'Analyze this frame' }
 })
+
+await publisher.updateStream({
+  params: { prompts: '{"1":{"inputs":{"images":["3",0]},"class_type":"SaveTensor"}}' },
+  // Width/height changes require restarting the stream, so omit them here.
+})
 ```
 
 Hook up a `StreamViewer` to the same `StreamConfig` to render the WHEP output, or create a `DataStreamClient` for SSE payloads to mirror real-time insights from the demo.
