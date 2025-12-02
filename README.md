@@ -1,45 +1,51 @@
 # BYOC Stream SDK
 
-Production-quality SDK for Livepeer BYOC video streaming with AI processing capabilities.
+Production-quality SDK for Livepeer BYOC video streaming with AI-powered insights.
 
-**Package:** `@eliteencoder/byoc-sdk`
+## Highlights
 
-## Features
-
-- 🎥 **WebRTC Streaming** - Publish and view streams using WHIP/WHEP protocols
-- 🤖 **AI Processing** - Seamless integration with AI pipelines
-- 📊 **Real-time Data** - Server-Sent Events (SSE) for data and event streaming
-- 📱 **Media Device Management** - Easy camera, microphone, and screen sharing
-- ⚛️ **React Hooks** - First-class React support with hooks
-- 📦 **TypeScript** - Full TypeScript support with comprehensive types
-- 🔄 **Automatic Retry** - Built-in retry logic with exponential backoff
-- 📈 **Stats Monitoring** - Real-time connection statistics
-
-## Installation
-
-```bash
-npm install @eliteencoder/byoc-sdk
-```
+- 🎥 **WebRTC streaming** with WHIP/WHEP endpoints and automatic ICE handling
+- 🤖 **AI-ready** pipelines with custom params/state updates
+- 📊 **SSE data streaming** for stats and text insights
+- 📱 **Media device management** with permissions and device lists
+- ⚛️ **React hooks** for publisher, viewer, data, and event flows
+- 📦 **TypeScript-first** exports with ESM/CJS builds
+- 🔄 **Robust retries** plus connection monitoring and stats
 
 ## Quick Start
 
-### Publishing a Stream
+```bash
+git clone https://github.com/eliteprox/byoc-sdk.git
+cd byoc-sdk
+npm install
+npm run build    # produces `dist/` for publishing or linking
+npm run serve:examples    # opens `examples/simple-demo.html` on http://localhost:3005
+```
 
-```typescript
+The `serve:examples` script spins up `http-server` against the repo root and immediately serves `examples/simple-demo.html`. Open `http://localhost:3005` to try the new single-page demo and inspect the console log to see SDK events and stats.
+
+## Example Preview
+
+- `examples/simple-demo.html` is the only bundled example. It wires the SDK to the browser camera, logs events, and renders stats + config controls.
+- Adjust the `prompts` input or the `StreamPublisher` start options inside that file to exercise different AI pipelines or resolutions.
+- Use the `StreamPublisher`, `StreamViewer`, and `DataStreamClient` snippets below as the foundation for your own pages.
+
+## Integrating the SDK
+
+```ts
 import { StreamPublisher, StreamConfig } from '@eliteencoder/byoc-sdk'
 
 const config: StreamConfig = {
-  whipUrl: 'https://your-server.com/gateway/ai/stream/start',
-  whepUrl: 'https://your-server.com/mediamtx',
-  dataStreamUrl: 'https://your-server.com/gateway',
-  kafkaEventsUrl: 'https://your-server.com/kafka/events',
+  whipUrl: 'https://your-server/gateway/ai/stream/start',
+  whepUrl: 'https://your-server/mediamtx',
+  dataStreamUrl: 'https://your-server/gateway',
+  kafkaEventsUrl: 'https://your-server/kafka/events',
   defaultPipeline: 'comfystream'
 }
 
 const publisher = new StreamPublisher(config)
 
-// Start streaming
-const streamInfo = await publisher.start({
+await publisher.start({
   streamName: 'my-stream',
   pipeline: 'comfystream',
   width: 1280,
@@ -47,307 +53,40 @@ const streamInfo = await publisher.start({
   fpsLimit: 30,
   enableVideoIngress: true,
   enableAudioIngress: true,
-  customParams: {
-    prompts: 'analyze this video'
-  }
+  enableDataOutput: true,
+  customParams: { prompts: 'Analyze this frame' }
 })
-
-// Update stream parameters
-await publisher.updateStream({
-  params: {
-    prompts: 'new instructions'
-  }
-})
-
-// Stop streaming
-await publisher.stop()
 ```
 
-### Viewing a Stream
+Hook up a `StreamViewer` to the same `StreamConfig` to render the WHEP output, or create a `DataStreamClient` for SSE payloads to mirror real-time insights from the demo.
 
-```typescript
-import { StreamViewer } from '@eliteencoder/byoc-sdk'
+## Commands
 
-const viewer = new StreamViewer(config)
+- `npm run build` – emit `dist/` for publishing or linking
+- `npm run serve:examples` – serve `examples/simple-demo.html` on port 3005
+- `npm test` – run the Vitest suite
+- `npm run demo:dev` – start the React demo webapp in `demo/`
 
-// Set video element
-const videoElement = document.getElementById('video') as HTMLVideoElement
-viewer.setVideoElement(videoElement)
+## Linking locally
 
-// Start viewing
-await viewer.start({
-  playbackUrl: streamInfo.playbackUrl
-})
+Use `npm link` if you need to consume the SDK from another project without publishing:
 
-// Stop viewing
-await viewer.stop()
+```bash
+cd byoc-sdk
+npm link
+cd ../livepeer-app-pipelines/byoc-stream/webapp
+npm link @eliteencoder/byoc-sdk
+npm install
+npm run dev
 ```
 
-### Data Streaming
+## Support
 
-```typescript
-import { DataStreamClient } from '@eliteencoder/byoc-sdk'
-
-const dataClient = new DataStreamClient(config)
-
-// Listen for data
-dataClient.on('data', (event) => {
-  console.log('Received data:', event.data)
-})
-
-// Connect
-await dataClient.connect({
-  streamName: 'my-stream',
-  maxLogs: 1000
-})
-
-// Disconnect
-dataClient.disconnect()
-```
-
-## React Hooks
-
-### useStreamPublisher
-
-```tsx
-import { useStreamPublisher } from '@eliteencoder/byoc-sdk'
-
-function PublisherComponent() {
-  const {
-    isStreaming,
-    status,
-    stats,
-    streamInfo,
-    localStream,
-    start,
-    stop,
-    updateStream
-  } = useStreamPublisher({
-    config,
-    onStatusChange: (status) => console.log('Status:', status),
-    onStatsUpdate: (stats) => console.log('Stats:', stats)
-  })
-
-  const handleStart = async () => {
-await start({
-  streamName: 'my-stream',
-  pipeline: 'comfystream',
-  width: 1280,
-  height: 720
-})
-  }
-
-  return (
-    <div>
-      <button onClick={handleStart} disabled={isStreaming}>
-        Start Streaming
-      </button>
-      <button onClick={stop} disabled={!isStreaming}>
-        Stop Streaming
-      </button>
-      <p>Status: {status}</p>
-      <p>Bitrate: {stats?.bitrate} kbps</p>
-      <p>FPS: {stats?.fps}</p>
-    </div>
-  )
-}
-```
-
-### useStreamViewer
-
-```tsx
-import { useStreamViewer } from '@eliteencoder/byoc-sdk'
-import { useRef } from 'react'
-
-function ViewerComponent({ playbackUrl }: { playbackUrl: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  
-  const {
-    isViewing,
-    status,
-    stats,
-    start,
-    stop
-  } = useStreamViewer({
-    config,
-    videoRef,
-    onStatusChange: (status) => console.log('Viewer status:', status)
-  })
-
-  const handleStart = async () => {
-    await start({ playbackUrl })
-  }
-
-  return (
-    <div>
-      <video ref={videoRef} autoPlay playsInline />
-      <button onClick={handleStart} disabled={isViewing}>
-        Start Viewing
-      </button>
-      <button onClick={stop} disabled={!isViewing}>
-        Stop Viewing
-      </button>
-      <p>Status: {status}</p>
-      <p>Bitrate: {stats?.bitrate} kbps</p>
-    </div>
-  )
-}
-```
-
-### useDataStream
-
-```tsx
-import { useDataStream } from '@eliteencoder/byoc-sdk'
-
-function DataStreamComponent({ streamName }: { streamName: string }) {
-  const {
-    isConnected,
-    logs,
-    connect,
-    disconnect,
-    clearLogs
-  } = useDataStream({
-    config,
-    onData: (event) => console.log('Data:', event),
-    autoConnect: true,
-    streamName
-  })
-
-  return (
-    <div>
-      <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
-      <button onClick={() => connect({ streamName })}>Connect</button>
-      <button onClick={disconnect}>Disconnect</button>
-      <button onClick={clearLogs}>Clear Logs</button>
-      <div>
-        {logs.map(log => (
-          <div key={log.id}>
-            {log.type}: {JSON.stringify(log.data)}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-```
-
-## API Reference
-
-### StreamPublisher
-
-#### Methods
-
-- `start(options: StreamStartOptions): Promise<StreamStartResponse>` - Start publishing
-- `stop(): Promise<void>` - Stop publishing
-- `updateStream(options: StreamUpdateOptions): Promise<void>` - Update stream parameters
-- `getMediaDevices(): Promise<MediaDevices>` - Get available media devices
-- `requestPermissions(video?, audio?): Promise<void>` - Request media permissions
-
-#### Events
-
-- `statusChange` - Connection status changed
-- `statsUpdate` - Connection statistics updated
-- `error` - Error occurred
-- `mediaStreamReady` - Local media stream is ready
-- `streamStarted` - Stream started successfully
-- `streamStopped` - Stream stopped
-
-### StreamViewer
-
-#### Methods
-
-- `start(options: ViewerStartOptions): Promise<void>` - Start viewing
-- `stop(): Promise<void>` - Stop viewing
-- `setVideoElement(element: HTMLVideoElement): void` - Set video element
-
-#### Events
-
-- `statusChange` - Connection status changed
-- `statsUpdate` - Connection statistics updated
-- `error` - Error occurred
-- `videoReady` - Video element is ready
-- `viewingStarted` - Viewing started
-- `viewingStopped` - Viewing stopped
-
-### DataStreamClient
-
-#### Methods
-
-- `connect(options: DataStreamOptions): Promise<void>` - Connect to data stream
-- `disconnect(): void` - Disconnect from data stream
-- `getLogs(): DataLog[]` - Get all logs
-- `clearLogs(): void` - Clear all logs
-
-#### Events
-
-- `connected` - Connected to data stream
-- `disconnected` - Disconnected from data stream
-- `data` - Data received
-- `error` - Error occurred
-
-## Configuration
-
-```typescript
-interface StreamConfig {
-  whipUrl: string          // WHIP endpoint for publishing
-  whepUrl: string          // WHEP endpoint for viewing
-  dataStreamUrl: string    // Data stream SSE endpoint
-  kafkaEventsUrl: string   // Kafka events SSE endpoint
-  defaultPipeline?: string // Default AI pipeline
-}
-```
-
-## Stream Options
-
-```typescript
-interface StreamStartOptions {
-  streamName: string                  // Unique stream name
-  pipeline: string                    // AI pipeline name
-  width?: number                      // Video width
-  height?: number                     // Video height
-  enableVideoIngress?: boolean        // Enable video input
-  enableVideoEgress?: boolean         // Enable video output
-  enableAudioIngress?: boolean        // Enable audio input
-  enableAudioEgress?: boolean         // Enable audio output
-  enableDataOutput?: boolean          // Enable data output
-  fpsLimit?: number                   // FPS limit
-  customParams?: Record<string, any>  // Custom pipeline parameters
-  streamId?: string                   // Optional stream ID
-  cameraDeviceId?: string            // Camera device ID
-  microphoneDeviceId?: string        // Microphone device ID
-  useScreenShare?: boolean           // Use screen sharing
-}
-```
-
-## Error Handling
-
-The SDK provides specialized error classes:
-
-```typescript
-import { StreamError, ConnectionError, MediaError } from '@eliteencoder/byoc-sdk'
-
-try {
-  await publisher.start(options)
-} catch (error) {
-  if (error instanceof ConnectionError) {
-    console.error('Connection failed:', error.message)
-  } else if (error instanceof MediaError) {
-    console.error('Media access failed:', error.message)
-  } else if (error instanceof StreamError) {
-    console.error('Stream error:', error.message)
-  }
-}
-```
+- File issues at https://github.com/eliteprox/byoc-sdk/issues
+- Review the bundled `demo` directory for a full React + Vite example that mirrors production usage, including its own README.
+- Contributions welcome – send PRs to the repository and reference this README for context.
 
 ## License
 
 MIT
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
-
-## Support
-
-For issues and questions, please open an issue on GitHub.
 

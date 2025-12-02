@@ -6,9 +6,3 @@ coverage
 .env
 .env.local
 
-# Docker data
-data/*
-!data/gateway/
-data/gateway/*
-!data/gateway/.gitkeep
-
