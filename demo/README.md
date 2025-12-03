@@ -1,13 +1,14 @@
 # BYOC SDK Demo App
 
-This React + Vite demo app walks through the BYOC SDK’s publisher, viewer, and data-stream workflows with real-time stats and logging.
+This Vite + React demo mirrors the plain HTML example in `examples/simple-demo.html` while showcasing the idiomatic “install the npm package and call the hooks” workflow.
 
 ## Features
 
-- **Publisher** – start a WHIP stream, adjust resolution/FPS, and push custom prompts
-- **Viewer** – play WHEP playback URLs directly inside the same UI
-- **DataStream logs** – monitor SSE/text outputs exactly like the SDK clients
-- **Configurable inputs** – control stream name, pipeline, prompts, and more
+- **Single-page publisher + viewer** – start WHIP ingest and automatically play the processed WHEP output in one layout.
+- **Prompt management** – reuse saved workflows from `/workflows/`, edit prompts inline, and send live prompt updates that respect the SDK’s immutable resolution rules.
+- **Live stats & logs** – bitrate/FPS overlays, connection badges, and a console-style log that mirrors the reference HTML sample.
+- **SDK-first usage** – demonstrates `useStreamPublisher`/`useStreamViewer` along with the latest update URL handling fixes.
+- **Shared styling** – both this app and `examples/simple-demo.html` import `examples/simple-demo.css`, so UI tweaks only need to be done once.
 
 ## Running locally
 
@@ -29,22 +30,19 @@ The optimized output lands in `demo/dist/`.
 
 ## Configuration
 
-The app honors these environment variables:
+The demo reads a single environment variable:
 
-- `VITE_HOST` – base hostname for the demo (defaults to `localhost`)
-- `VITE_WORKFLOW_API_KEY` – API key when the workflow UI is enabled
+- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://eliteencoder.net:8088`). The app derives WHIP/WHEP/data/update paths from this value and also uses it for the `/workflows/` helper.
 
-Set `VITE_HOST` and `VITE_WORKFLOW_API_KEY` before `npm run dev` to override defaults.
+Set the variable before running `npm run dev` or `npm run build` to target a different environment.
 
 ## Project layout
 
 ```
 demo/
 ├── src/
-│   ├── components/
-│   │   ├── Publisher.tsx
-│   │   └── Viewer.tsx
-│   ├── App.tsx
+│   ├── App.tsx          # combined publisher/viewer experience
+│   ├── index.css        # root-specific tweaks (shared CSS lives in examples/simple-demo.css)
 │   └── main.tsx
 ├── index.html
 ├── vite.config.ts
@@ -53,7 +51,8 @@ demo/
 
 ## Usage checklist
 
-1. Start the publisher section and configure the stream name, resolution, FPS, and AI prompts.
-2. Use the viewer section to paste a WHEP playback URL or reuse the stream generated above.
-3. Observe stats, logs, and SSE output rendered alongside the video feeds.
+1. Generate the default stream name, pick a pipeline, and optionally select a saved workflow to populate prompts.
+2. Click **Start Stream** – the publisher starts, the viewer attaches automatically, and stats/logs update in real time.
+3. Modify prompts and press **Update Prompts** to send a sanitized update payload that mirrors the working cURL example.
+4. Use **Stop Stream** to tear everything down, which also stops the viewer session.
 
