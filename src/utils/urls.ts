@@ -23,10 +23,13 @@ export function constructWhipUrl(
 ): string {
   const url = new URL(baseUrl)
 
-  // Add stream name to the path if provided, unless the URL ends in 'start' or 'whip'
-  if (streamName && streamName.trim() && !baseUrl.endsWith('/start') && !baseUrl.endsWith('/whip')) {
+  // Add stream name to the path if provided and the path doesn't already end with '/whip'
+  if (streamName && streamName.trim()) {
     const safeName = streamName.trim()
-    url.pathname += `/${safeName}/whip`
+    if (!url.pathname.endsWith('/whip')) {
+      url.pathname = url.pathname.replace(/\/$/, '')
+      url.pathname += `/${safeName}/whip`
+    }
   }
 
   // Add pipeline parameter
