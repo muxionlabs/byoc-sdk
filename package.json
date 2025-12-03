@@ -30,7 +30,7 @@
     "demo:dev": "cd demo && npm install && npm run dev",
     "demo:build": "cd demo && npm install && npm run build",
     "demo:preview": "cd demo && npm run preview",
-    "serve:examples": "npx http-server . -o examples/simple-demo.html -p 3005"
+    "serve:examples": "npx http-server . -o examples/html-demo.html -p 3005"
   },
   "keywords": [
     "livepeer",
@@ -69,7 +69,7 @@
     "jsdom": "^26.1.0",
     "react": "^18.3.1",
     "tsup": "^8.0.1",
-    "typescript": "^5.5.3",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.15"
   }
 }
