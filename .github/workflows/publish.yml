@@ -15,8 +15,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -44,8 +42,8 @@ jobs:
       - name: Publish to npm
         run: |
           if [ -n "${{ github.event.inputs.npm_tag }}" ]; then
-            npm publish --access public --tag "${{ github.event.inputs.npm_tag }}"
+            npm publish --provenance --access public --tag "${{ github.event.inputs.npm_tag }}"
           else
-            npm publish --access public
+            npm publish --provenance --access public
           fi
 
