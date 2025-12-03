@@ -5,16 +5,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Build Demo (npm run demo)",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "demo:build"],
-      "console": "integratedTerminal"
-    },
-    // Add a config to npm run dev from the demo folder
-    {
       "name": "Build Demo (npm run demo:dev)",
       "type": "node",
       "request": "launch",
@@ -22,16 +12,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "console": "integratedTerminal"
-    },
-    {
-      "name": "Debug SDK (npm run dev)",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "console": "integratedTerminal",
-      "restart": true
     }
   ]
 }

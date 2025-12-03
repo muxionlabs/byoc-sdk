@@ -19,14 +19,14 @@ git clone https://github.com/eliteprox/byoc-sdk.git
 cd byoc-sdk
 npm install
 npm run build    # produces `dist/` for publishing or linking
-npm run serve:examples    # opens `examples/simple-demo.html` on http://localhost:3005
+npm run serve:examples    # opens `examples/html-demo.html` on http://localhost:3005
 ```
 
-The `serve:examples` script spins up `http-server` against the repo root and immediately serves `examples/simple-demo.html`. Open `http://localhost:3005` to try the new single-page demo and inspect the console log to see SDK events and stats.
+The `serve:examples` script spins up `http-server` against the repo root and immediately serves `examples/html-demo.html`. Open `http://localhost:3005` to try the new single-page demo and inspect the console log to see SDK events and stats.
 
 ## Example Preview
 
-- `examples/simple-demo.html` is the only bundled example. It wires the SDK to the browser camera, logs events, and renders stats + config controls.
+- `examples/html-demo.html` is the only bundled example. It wires the SDK to the browser camera, logs events, and renders stats + config controls.
 - Adjust the `prompts` input or the `StreamPublisher` start options inside that file to exercise different AI pipelines or resolutions.
 - Use the `StreamPublisher`, `StreamViewer`, and `DataStreamClient` snippets below as the foundation for your own pages.
 
@@ -68,7 +68,7 @@ Hook up a `StreamViewer` to the same `StreamConfig` to render the WHEP output, o
 ## Commands
 
 - `npm run build` – emit `dist/` for publishing or linking
-- `npm run serve:examples` – serve `examples/simple-demo.html` on port 3005
+- `npm run serve:examples` – serve `examples/html-demo.html` on port 3005
 - `npm test` – run the Vitest suite
 - `npm run demo:dev` – start the React demo webapp in `demo/`
 
