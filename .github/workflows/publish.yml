@@ -41,21 +41,13 @@ jobs:
 
       - name: Create dist artifact
         if: github.event_name == 'release'
-        run: |
-          cd dist
-          tar -czf ../byoc-sdk-dist.tar.gz *
-          cd ..
+        run: tar -czf byoc-sdk-dist.tar.gz -C dist .
 
       - name: Upload dist artifact to release
         if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./byoc-sdk-dist.tar.gz
-          asset_name: byoc-sdk-${{ github.event.release.tag_name }}-dist.tar.gz
-          asset_content_type: application/gzip
+          files: byoc-sdk-dist.tar.gz
 
       - name: Publish to npm
         run: |
