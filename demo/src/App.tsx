@@ -17,15 +17,35 @@ const STREAM_HEIGHT = 720
 const STREAM_FPS = 30
 const MAX_VIEWER_RETRIES = 5
 const TEXT_OVERLAY_TTL = 6000
+const rawBaseUrl =
+  (import.meta.env?.VITE_BYOC_BASE_URL as string | undefined) || 'https://eliteencoder.net:8088'
+const BASE_URL = rawBaseUrl.replace(/\/$/, '')
 
-const baseFromEnv = (import.meta.env?.VITE_BYOC_BASE_URL as string) || 'https://eliteencoder.net:8088'
-const BASE_URL = baseFromEnv.replace(/\/$/, '')
+const WHIP_URL =
+  (import.meta.env?.VITE_BYOC_WHIP_URL as string | undefined) ||
+  `${BASE_URL}/gateway/ai/stream/start`
+
+const WHEP_URL =
+  (import.meta.env?.VITE_BYOC_WHEP_URL as string | undefined) ||
+  `${BASE_URL}/mediamtx`
+
+const DATA_STREAM_URL =
+  (import.meta.env?.VITE_BYOC_DATA_STREAM_URL as string | undefined) ||
+  `${BASE_URL}/gateway`
+
+const KAFKA_EVENTS_URL =
+  (import.meta.env?.VITE_BYOC_KAFKA_EVENTS_URL as string | undefined) ||
+  `${BASE_URL}/kafka/events`
+
+const WORKFLOWS_URL =
+  (import.meta.env?.VITE_BYOC_WORKFLOWS_URL as string | undefined) ||
+  `${BASE_URL}/workflows/`
 
 const demoConfig: StreamConfig = {
-  whipUrl: `${BASE_URL}/gateway/ai/stream/start`,
-  whepUrl: `${BASE_URL}/mediamtx`,
-  dataStreamUrl: `${BASE_URL}/gateway`,
-  kafkaEventsUrl: `${BASE_URL}/kafka/events`,
+  whipUrl: WHIP_URL,
+  whepUrl: WHEP_URL,
+  dataStreamUrl: DATA_STREAM_URL,
+  kafkaEventsUrl: KAFKA_EVENTS_URL,
   defaultPipeline: 'comfystream'
 }
 
@@ -231,7 +251,7 @@ function App() {
     let cancelled = false
     const loadWorkflows = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/workflows/`)
+        const response = await fetch(WORKFLOWS_URL)
         if (!response.ok) throw new Error('Failed to load workflows')
         const data = await response.json()
         if (cancelled) return
