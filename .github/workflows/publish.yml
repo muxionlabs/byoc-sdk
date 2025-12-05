@@ -13,7 +13,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     steps:
@@ -38,6 +38,16 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Create dist artifact
+        if: github.event_name == 'release'
+        run: tar -czf byoc-sdk-dist.tar.gz -C dist .
+
+      - name: Upload dist artifact to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: byoc-sdk-dist.tar.gz
 
       - name: Publish to npm
         run: |
