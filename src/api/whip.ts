@@ -26,9 +26,10 @@ export async function initializeGatewayStream(
   const resolveFlag = (value: boolean | undefined, defaultValue: boolean = true) =>
     typeof value === 'boolean' ? value : defaultValue
 
-  const params = {
+  const params: Record<string, any> = {
     height: options.height,
     width: options.width,
+    max_framerate: options.fpsLimit || 30,
     ...options.customParams,
   }
 
