@@ -35,11 +35,14 @@ The `serve:examples` script spins up `http-server` against the repo root and imm
 ```ts
 import { StreamPublisher, StreamConfig } from '@eliteencoder/byoc-sdk'
 
+// Define your gateway base URL
+const GATEWAY_URL = 'https://your-gateway.example.com'
+
 const config: StreamConfig = {
-  whipUrl: 'https://your-server/gateway/ai/stream/start',
-  whepUrl: 'https://your-server/mediamtx',
-  dataStreamUrl: 'https://your-server/gateway',
-  kafkaEventsUrl: 'https://your-server/kafka/events',
+  whipUrl: `${GATEWAY_URL}/gateway/ai/stream/start`,
+  whepUrl: `${GATEWAY_URL}/mediamtx`,
+  dataStreamUrl: `${GATEWAY_URL}/gateway`,
+  kafkaEventsUrl: `${GATEWAY_URL}/gateway/kafka/events`,
   defaultPipeline: 'comfystream'
 }
 
