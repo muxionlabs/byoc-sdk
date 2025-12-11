@@ -1,4 +1,4 @@
-import { StreamConfig, StreamStartResponse } from '@eliteencoder/byoc-sdk'
+import { StreamConfig, StreamStartResponse } from '@muxionlabs/byoc-sdk'
 
 interface StreamInfoProps {
   streamInfo: StreamStartResponse | null

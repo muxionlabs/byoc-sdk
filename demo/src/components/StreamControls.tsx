@@ -1,5 +1,5 @@
 import { ChangeEvent } from 'react'
-import { StreamConfig, StreamStartResponse } from '@eliteencoder/byoc-sdk'
+import { StreamConfig, StreamStartResponse } from '@muxionlabs/byoc-sdk'
 import { SavedWorkflow } from '../types'
 
 interface StreamControlsProps {

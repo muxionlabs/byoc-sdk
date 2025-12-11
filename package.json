@@ -1,6 +1,6 @@
 {
-  "name": "@eliteencoder/byoc-sdk",
-  "version": "1.0.4",
+  "name": "@muxionlabs/byoc-sdk",
+  "version": "1.0.5",
   "description": "Production-quality SDK for Livepeer BYOC video streaming with AI processing",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -46,12 +46,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eliteprox/byoc-sdk.git"
+    "url": "git+https://github.com/muxionlabs/byoc-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/eliteprox/byoc-sdk/issues"
+    "url": "https://github.com/muxionlabs/byoc-sdk/issues"
   },
-  "homepage": "https://github.com/eliteprox/byoc-sdk#readme",
+  "homepage": "https://github.com/muxionlabs/byoc-sdk#readme",
   "engines": {
     "node": ">=20"
   },
