@@ -15,7 +15,7 @@ Production-quality SDK for Livepeer BYOC video streaming with AI-powered insight
 ## Quick Start
 
 ```bash
-git clone https://github.com/eliteprox/byoc-sdk.git
+git clone https://github.com/muxionlabs/byoc-sdk.git
 cd byoc-sdk
 npm install
 npm run build    # produces `dist/` for publishing or linking
@@ -33,7 +33,7 @@ The `serve:examples` script spins up `http-server` against the repo root and imm
 ## Integrating the SDK
 
 ```ts
-import { StreamPublisher, StreamConfig } from '@eliteencoder/byoc-sdk'
+import { StreamPublisher, StreamConfig } from '@muxionlabs/byoc-sdk'
 
 // Define your gateway base URL
 const GATEWAY_URL = 'https://your-gateway.example.com'
@@ -83,14 +83,14 @@ Use `npm link` if you need to consume the SDK from another project without publi
 cd byoc-sdk
 npm link
 cd ../livepeer-app-pipelines/byoc-stream/webapp
-npm link @eliteencoder/byoc-sdk
+npm link @muxionlabs/byoc-sdk
 npm install
 npm run dev
 ```
 
 ## Support
 
-- File issues at https://github.com/eliteprox/byoc-sdk/issues
+- File issues at https://github.com/muxionlabs/byoc-sdk/issues
 - Review the bundled `demo` directory for a full React + Vite example that mirrors production usage, including its own README.
 - Contributions welcome – send PRs to the repository and reference this README for context.
 

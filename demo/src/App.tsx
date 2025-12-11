@@ -4,8 +4,8 @@ import {
   useStreamPublisher,
   useStreamViewer,
   useDataStream
-} from '@eliteencoder/byoc-sdk'
-import type { ViewerStartOptions, DataStreamEvent } from '@eliteencoder/byoc-sdk'
+} from '@muxionlabs/byoc-sdk'
+import type { ViewerStartOptions, DataStreamEvent } from '@muxionlabs/byoc-sdk'
 import '../../examples/simple-demo.css'
 import { VideoPreview, StreamControls, StreamInfo, ConsoleLog } from './components'
 import type { LogEntry, LogLevel, SavedWorkflow, TextOverlay, StatsOverlay } from './types'
