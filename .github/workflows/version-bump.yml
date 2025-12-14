@@ -11,17 +11,13 @@ on:
           - patch
           - minor
           - major
-      create_release:
-        description: 'Create GitHub release'
-        required: false
-        type: boolean
-        default: true
 
 jobs:
   bump-version:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -56,33 +52,39 @@ jobs:
           npm version ${{ github.event.inputs.bump_type }} --no-git-tag-version
           echo "✅ Bumped demo to v${{ steps.sdk-version.outputs.new_version }}"
 
-      - name: Commit version bump
+      - name: Create branch and commit
         run: |
+          BRANCH_NAME="release/v${{ steps.sdk-version.outputs.new_version }}"
+          git checkout -b "$BRANCH_NAME"
           git add package.json package-lock.json demo/package.json demo/package-lock.json
           git commit -m "chore: bump version to v${{ steps.sdk-version.outputs.new_version }}"
+          git push origin "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
 
-      - name: Create git tag
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag -a "v${{ steps.sdk-version.outputs.new_version }}" -m "Release v${{ steps.sdk-version.outputs.new_version }}"
-
-      - name: Push changes
-        run: |
-          git push origin main
-          git push origin "v${{ steps.sdk-version.outputs.new_version }}"
-
-      - name: Create GitHub Release
-        if: ${{ github.event.inputs.create_release == 'true' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.sdk-version.outputs.new_version }}
-          name: Release v${{ steps.sdk-version.outputs.new_version }}
-          body: |
-            ## Changes in v${{ steps.sdk-version.outputs.new_version }}
-            
-            <!-- Add release notes here -->
-            
-            ---
-            
-            **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.sdk-version.outputs.new_version }}...v${{ steps.sdk-version.outputs.new_version }}
-          draft: true
-          prerelease: false
+          gh pr create \
+            --title "Release v${{ steps.sdk-version.outputs.new_version }}" \
+            --body "$(cat <<'EOF'
+          ## Version Bump: v${{ steps.sdk-version.outputs.new_version }}
+          
+          This PR bumps the version for both the SDK and demo app to prepare for the next release.
+          
+          ### Changes
+          - 📦 SDK version: **v${{ steps.sdk-version.outputs.new_version }}**
+          - 📦 Demo version: **v${{ steps.sdk-version.outputs.new_version }}**
+          
+          ### Next Steps
+          1. Review and merge this PR
+          2. Create a GitHub release with tag `v${{ steps.sdk-version.outputs.new_version }}`
+          3. The publish workflow will automatically deploy to npm
+          
+          ---
+          
+          _Automated version bump via GitHub Actions_
+          EOF
+          )" \
+            --base main \
+            --head "${{ env.branch_name }}"
