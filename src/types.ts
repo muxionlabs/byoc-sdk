@@ -106,6 +106,10 @@ export class StreamConfig {
     return `${this.streamBaseUrl}/${streamId}/stop`
   }
 
+  /**
+   * Remove all trailing slashes from a URL
+   * @private
+   */
   private trimTrailingSlash(url: string): string {
     let trimmed = url
     while (trimmed.endsWith('/')) {
@@ -114,10 +118,20 @@ export class StreamConfig {
     return trimmed
   }
 
+  /**
+   * Ensure path starts with a leading slash
+   * @private
+   */
   private normalizePath(path: string): string {
     return path.startsWith('/') ? path : `/${path}`
   }
 
+  /**
+   * Derive the base stream path from WHIP path by removing '/start' suffix
+   * Example: '/gateway/ai/stream/start' -> '/gateway/ai/stream'
+   * Used to construct status, update, and stop URLs
+   * @private
+   */
   private deriveStreamBasePath(whipPath: string): string {
     const withoutStart = whipPath.replace(/\/start\/?$/, '')
     return this.normalizePath(withoutStart.replace(/\/$/, ''))
@@ -165,12 +179,8 @@ export interface StreamUpdateOptions {
 }
 
 export interface ViewerStartOptions {
-  /**
-   * Playback URL path or full URL from gateway.
-   * Accepts either a relative path (e.g., '/stream/abc-123/whep') or a full URL (e.g., 'https://gateway.example.com/stream/abc-123/whep').
-   * SDK will construct the full WHEP URL if a relative path is provided, or use the full URL as-is.
-   */
-  playbackUrl?: string
+  /** WHEP URL for viewing the stream. Should be the full URL returned from gateway's whep_url field. */
+  whepUrl?: string
 }
 
 // ============================================================================

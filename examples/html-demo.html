@@ -274,9 +274,9 @@
 
     async function startViewerForCurrentStream(response) {
       try {
-        const whepUrl = response.whepUrl || response.playbackUrl || config.whepUrl
+        const whepUrl = response.whepUrl
         if (!whepUrl) {
-          log('⚠️ No WHEP URL available, cannot start viewer', 'warn')
+          log('⚠️ No WHEP URL available from gateway, cannot start viewer', 'warn')
           return
         }
 
@@ -288,8 +288,7 @@
         viewer.setVideoElement(outputVideo)
 
         await viewer.start({
-          whepUrl,
-          playbackUrl: response.playbackUrl || undefined
+          whepUrl
         })
         log('🎥 Output viewer started', 'info')
       } catch (error) {

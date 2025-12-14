@@ -151,11 +151,10 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       const gatewayStreamId = initData.streamId || streamId
       const resolvedStreamId = response.streamId || gatewayStreamId || streamId
       const resolvedPlaybackUrl = response.playbackUrl || initData.playbackUrl || null
-      const resolvedWhepUrl = initData.whepUrl
-        || (resolvedPlaybackUrl ? this.config.getWhepUrl(resolvedPlaybackUrl) : this.config.getWhepUrl())
-        || null
+      // Use whepUrl directly from gateway - it should return the full URL
+      const resolvedWhepUrl = initData.whepUrl || null
       const resolvedDataUrl =
-        initData.dataUrl || (options.streamName ? this.buildDataUrl(options.streamName) : null)
+        initData.dataUrl || (options.streamName ? this.config.getDataUrl(options.streamName) : null)
       const resolvedStatusUrl =
         initData.statusUrl || (resolvedStreamId ? this.config.getStatusUrl(resolvedStreamId) : null)
       const resolvedUpdateUrl =
@@ -442,13 +441,6 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       resolution,
       streamId: this.streamInfo?.streamId || null
     }
-  }
-
-  /**
-   * Build data URL from stream name
-   */
-  private buildDataUrl(streamName: string): string {
-    return this.config.getDataUrl(streamName)
   }
 
   /**

@@ -208,7 +208,7 @@ function App() {
     },
     onStreamStarted: (response) => {
       addLog('✅ Stream started successfully', 'success')
-      lastViewerUrlRef.current = response.playbackUrl || ''
+      lastViewerUrlRef.current = response.whepUrl || ''
     },
     onStreamStopped: () => {
       addLog('⏹️ Stream stopped', 'info')
@@ -264,20 +264,20 @@ function App() {
       return
     }
 
-    const playbackUrl = streamInfo?.playbackUrl
-    if (!playbackUrl) return
-    if (lastViewerUrlRef.current === playbackUrl && isViewing) {
+    const whepUrl = streamInfo?.whepUrl
+    if (!whepUrl) return
+    if (lastViewerUrlRef.current === whepUrl && isViewing) {
       return
     }
 
-    lastViewerUrlRef.current = playbackUrl
+    lastViewerUrlRef.current = whepUrl
     startViewerWithRetry({
-      playbackUrl: playbackUrl
+      whepUrl: whepUrl
     })
   }, [
     isStreaming,
     isViewing,
-    streamInfo?.playbackUrl,
+    streamInfo?.whepUrl,
     startViewerWithRetry,
     stopViewing,
     addLog,

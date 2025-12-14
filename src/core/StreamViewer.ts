@@ -64,13 +64,11 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
     try {
       this.setStatus('connecting')
 
-      // Construct WHEP URL from playbackUrl (if provided) or use default
-      const whepUrl = options.playbackUrl
-        ? this.config.getWhepUrl(options.playbackUrl)
-        : this.config.getWhepUrl()
+      // Use WHEP URL directly from options - it should be the full URL from gateway
+      const whepUrl = options.whepUrl
 
       if (!whepUrl) {
-        throw new StreamError('No WHEP URL available')
+        throw new StreamError('No WHEP URL provided. Pass the whepUrl from StreamPublisher.getStreamInfo()')
       }
 
       // Create peer connection

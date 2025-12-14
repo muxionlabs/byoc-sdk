@@ -140,23 +140,24 @@ const config = new StreamConfig({
 **Key Design Principles**:
 - **Single source of truth**: Gateway URL is the only required field, all endpoint URLs are derived automatically
 - **Simplicity**: One parameter object with sensible defaults
-- **Encapsulation**: StreamConfig internally constructs WHIP, WHEP, and data URLs via helper methods (`getWhipUrl()`, `getWhepUrl()`, `getDataUrl()`)
+- **Encapsulation**: StreamConfig provides helper methods for constructing control-plane URLs (`getWhipUrl()`, `getDataUrl()`, `getStatusUrl()`, `getUpdateUrl()`, `getStopUrl()`)
+- **Gateway-first**: Data-plane URLs (like `whepUrl`) are returned directly by the gateway as full URLs and used as-is
 - **Customization**: Optional path overrides for non-standard gateway configurations (all have defaults)
 
 **URL Construction Pattern**:
 ```typescript
-// StreamConfig builds full URLs from base gateway URL + paths
+// StreamConfig builds control-plane URLs from base gateway URL + paths
 config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
 // → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
 
-config.getWhepUrl('/stream/abc-123/whep')  // Leading slash replaces the path
-// → https://gateway.example.com:8088/stream/abc-123/whep
+config.getStatusUrl('stream-123')
+// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/status
 
 config.getDataUrl('my-stream')
 // → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
 ```
 
-**Key Design Principle**: Gateway returns relative paths (like `playbackUrl`), SDK constructs full URLs by combining with configured base URLs. Users never need to deal with full URL construction.
+**Key Design Principle**: Gateway returns full URLs for data-plane endpoints (like `whepUrl`). The SDK uses these directly without additional construction. Control-plane URLs (status, update, stop) are derived from the gateway base URL using StreamConfig helpers.
 
 ### Error Handling
 

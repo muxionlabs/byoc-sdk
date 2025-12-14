@@ -9,7 +9,7 @@ import {
   constructWhepUrl,
   constructDataStreamUrl
 } from '../utils/urls'
-
+ 
 describe('URL utilities', () => {
   describe('generateStreamId', () => {
     it('should generate a unique stream ID', () => {
