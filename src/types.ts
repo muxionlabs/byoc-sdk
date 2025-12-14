@@ -19,6 +19,8 @@ export class StreamConfig {
   private readonly whipBaseUrl: string
   private readonly whepBaseUrl: string
   private readonly dataBaseUrl: string
+  private readonly streamBasePath: string
+  private readonly streamBaseUrl: string
 
   constructor(config: {
     /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
@@ -42,9 +44,11 @@ export class StreamConfig {
     this.whepPath = this.normalizePath(config.whepPath ?? '/mediamtx')
     this.dataPath = this.normalizePath(config.dataPath ?? '/gateway/ai/stream/')
 
+    this.streamBasePath = this.deriveStreamBasePath(this.whipPath)
     this.whipBaseUrl = `${this.gatewayUrl}${this.whipPath}`
     this.whepBaseUrl = `${this.gatewayUrl}${this.whepPath}`
     this.dataBaseUrl = `${this.gatewayUrl}${this.dataPath}`
+    this.streamBaseUrl = `${this.gatewayUrl}${this.streamBasePath}`
   }
 
   /**
@@ -81,6 +85,27 @@ export class StreamConfig {
     return constructDataStreamUrl(this.dataBaseUrl, streamName, customDataUrl)
   }
 
+  /**
+   * Build a status URL for a given stream ID
+   */
+  getStatusUrl(streamId: string): string {
+    return `${this.streamBaseUrl}/${streamId}/status`
+  }
+
+  /**
+   * Build an update URL for a given stream ID
+   */
+  getUpdateUrl(streamId: string): string {
+    return `${this.streamBaseUrl}/${streamId}/update`
+  }
+
+  /**
+   * Build a stop URL for a given stream ID
+   */
+  getStopUrl(streamId: string): string {
+    return `${this.streamBaseUrl}/${streamId}/stop`
+  }
+
   private trimTrailingSlash(url: string): string {
     let trimmed = url
     while (trimmed.endsWith('/')) {
@@ -91,6 +116,11 @@ export class StreamConfig {
 
   private normalizePath(path: string): string {
     return path.startsWith('/') ? path : `/${path}`
+  }
+
+  private deriveStreamBasePath(whipPath: string): string {
+    const withoutStart = whipPath.replace(/\/start\/?$/, '')
+    return this.normalizePath(withoutStart.replace(/\/$/, ''))
   }
 }
 

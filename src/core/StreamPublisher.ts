@@ -157,9 +157,9 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       const resolvedDataUrl =
         initData.dataUrl || (options.streamName ? this.buildDataUrl(options.streamName) : null)
       const resolvedStatusUrl =
-        initData.statusUrl || (resolvedStreamId ? this.buildStatusUrl(resolvedStreamId, sessionWhipUrl) : null)
+        initData.statusUrl || (resolvedStreamId ? this.config.getStatusUrl(resolvedStreamId) : null)
       const resolvedUpdateUrl =
-        initData.updateUrl || (resolvedStreamId ? this.buildUpdateUrl(resolvedStreamId, sessionWhipUrl) : null)
+        initData.updateUrl || (resolvedStreamId ? this.config.getUpdateUrl(resolvedStreamId) : null)
       const resolvedRtmpUrl = initData.rtmpUrl || null
 
       this.streamInfo = {
@@ -200,11 +200,10 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     try {
       // Send stop request if we have stream info
       if (this.streamInfo.streamId) {
-        // We need the base WHIP URL for the stop request
-        const whipUrl = this.config.getWhipUrl()
+        const stopUrl = this.config.getStopUrl(this.streamInfo.streamId)
         await stopStream(
+          stopUrl,
           this.streamInfo.streamId,
-          whipUrl,
           this.resolveActivePipeline('stop')
         )
       }
@@ -450,30 +449,6 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
    */
   private buildDataUrl(streamName: string): string {
     return this.config.getDataUrl(streamName)
-  }
-
-  /**
-   * Build status URL from stream ID
-   */
-  private buildStatusUrl(streamId: string, whipUrl: string): string {
-    const url = new URL(whipUrl)
-    // Remove '/stream/start' from pathname and query parameters, then strip trailing slash
-    url.pathname = url.pathname.replace(/\/stream\/start\/?$/, '').replace(/\/$/, '')
-    url.pathname = `${url.pathname}/stream/${streamId}/status`
-    url.search = '' // Remove query parameters
-    return url.toString()
-  }
-
-  /**
-   * Build update URL from stream ID
-   */
-  private buildUpdateUrl(streamId: string, whipUrl: string): string {
-    const url = new URL(whipUrl)
-    // Remove '/stream/start' from pathname and query parameters, then strip trailing slash
-    url.pathname = url.pathname.replace(/\/stream\/start\/?$/, '').replace(/\/$/, '')
-    url.pathname = `${url.pathname}/stream/${streamId}/update`
-    url.search = '' // Remove query parameters
-    return url.toString()
   }
 
   /**

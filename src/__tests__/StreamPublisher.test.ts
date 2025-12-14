@@ -3,88 +3,56 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { StreamPublisher } from '../core/StreamPublisher'
 import { StreamConfig } from '../types'
 
-describe('StreamPublisher URL building', () => {
-  const config = new StreamConfig({
-    gatewayUrl: 'https://example.com:8088'
-  })
-  const publisher = new StreamPublisher(config)
-
-  describe('buildStatusUrl', () => {
-    it('should handle WHIP URL with query parameters', () => {
-      const whipUrl = 'https://example.com/gateway/ai/stream/start?pipeline=comfystream&width=1280'
+describe('StreamConfig URL helpers', () => {
+  describe('getStatusUrl', () => {
+    it('builds status URL from default paths', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
       const streamId = 'test-stream-123'
-      
-      // Access private method via reflection for testing
-      const buildStatusUrl = (publisher as any).buildStatusUrl.bind(publisher)
-      const result = buildStatusUrl(streamId, whipUrl)
-      
-      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-123/status')
-      expect(result).not.toContain('?')
-      expect(result).not.toContain('pipeline')
-    })
 
-    it('should handle WHIP URL without query parameters', () => {
-      const whipUrl = 'https://example.com/gateway/ai/stream/start'
-      const streamId = 'test-stream-123'
-      
-      const buildStatusUrl = (publisher as any).buildStatusUrl.bind(publisher)
-      const result = buildStatusUrl(streamId, whipUrl)
-      
-      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-123/status')
-    })
+      const result = config.getStatusUrl(streamId)
 
-    it('should handle WHIP URL with trailing slash', () => {
-      const whipUrl = 'https://example.com/gateway/ai/stream/start/'
-      const streamId = 'test-stream-123'
-      
-      const buildStatusUrl = (publisher as any).buildStatusUrl.bind(publisher)
-      const result = buildStatusUrl(streamId, whipUrl)
-      
-      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-123/status')
-      // Check for double slashes in path (excluding protocol)
+      expect(result).toBe('https://example.com:8088/gateway/ai/stream/test-stream-123/status')
       const pathPart = result.split('://')[1]
       expect(pathPart).not.toContain('//')
     })
+
+    it('builds status URL with custom whip path', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com',
+        whipPath: '/custom/start/'
+      })
+      const result = config.getStatusUrl('abc')
+
+      expect(result).toBe('https://example.com/custom/abc/status')
+    })
   })
 
-  describe('buildUpdateUrl', () => {
-    it('should handle WHIP URL with query parameters', () => {
-      const whipUrl = 'https://example.com/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720'
+  describe('getUpdateUrl', () => {
+    it('builds update URL from default paths', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
       const streamId = 'test-stream-456'
-      
-      const buildUpdateUrl = (publisher as any).buildUpdateUrl.bind(publisher)
-      const result = buildUpdateUrl(streamId, whipUrl)
-      
-      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-456/update')
-      expect(result).not.toContain('?')
-      expect(result).not.toContain('pipeline')
-      expect(result).not.toContain('width')
-    })
 
-    it('should handle WHIP URL without query parameters', () => {
-      const whipUrl = 'https://example.com/gateway/ai/stream/start'
-      const streamId = 'test-stream-456'
-      
-      const buildUpdateUrl = (publisher as any).buildUpdateUrl.bind(publisher)
-      const result = buildUpdateUrl(streamId, whipUrl)
-      
-      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-456/update')
-    })
+      const result = config.getUpdateUrl(streamId)
 
-    it('should handle WHIP URL with trailing slash', () => {
-      const whipUrl = 'https://example.com/gateway/ai/stream/start/'
-      const streamId = 'test-stream-456'
-      
-      const buildUpdateUrl = (publisher as any).buildUpdateUrl.bind(publisher)
-      const result = buildUpdateUrl(streamId, whipUrl)
-      
-      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-456/update')
-      // Check for double slashes in path (excluding protocol)
+      expect(result).toBe('https://example.com:8088/gateway/ai/stream/test-stream-456/update')
       const pathPart = result.split('://')[1]
       expect(pathPart).not.toContain('//')
+    })
+
+    it('builds update URL with custom whip path', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com',
+        whipPath: '/custom/start/'
+      })
+      const result = config.getUpdateUrl('abc')
+
+      expect(result).toBe('https://example.com/custom/abc/update')
     })
   })
 })

@@ -149,8 +149,8 @@ const config = new StreamConfig({
 config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
 // → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
 
-config.getWhepUrl('/stream/abc-123/whep')  // Takes relative path from gateway
-// → https://gateway.example.com:8088/mediamtx/stream/abc-123/whep
+config.getWhepUrl('/stream/abc-123/whep')  // Leading slash replaces the path
+// → https://gateway.example.com:8088/stream/abc-123/whep
 
 config.getDataUrl('my-stream')
 // → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data

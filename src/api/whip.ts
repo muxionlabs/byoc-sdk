@@ -150,14 +150,13 @@ export async function sendWhipOffer(
  * Sends a stop stream request
  */
 export async function stopStream(
+  stopUrl: string,
   streamId: string,
-  whipUrl: string,
   pipeline: string
 ): Promise<boolean> {
   try {
     console.log(`Stopping stream with ID: ${streamId}`)
 
-    const stopUrl = whipUrl.replace('/stream/start', `/stream/${streamId}/stop`)
     const requestData = {
       "request": JSON.stringify({ "stream_id": streamId }),
       "parameters": JSON.stringify({}),
