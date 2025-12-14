@@ -35,6 +35,19 @@ describe('StreamPublisher URL building', () => {
       
       expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-123/status')
     })
+
+    it('should handle WHIP URL with trailing slash', () => {
+      const whipUrl = 'https://example.com/gateway/ai/stream/start/'
+      const streamId = 'test-stream-123'
+      
+      const buildStatusUrl = (publisher as any).buildStatusUrl.bind(publisher)
+      const result = buildStatusUrl(streamId, whipUrl)
+      
+      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-123/status')
+      // Check for double slashes in path (excluding protocol)
+      const pathPart = result.split('://')[1]
+      expect(pathPart).not.toContain('//')
+    })
   })
 
   describe('buildUpdateUrl', () => {
@@ -59,6 +72,19 @@ describe('StreamPublisher URL building', () => {
       const result = buildUpdateUrl(streamId, whipUrl)
       
       expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-456/update')
+    })
+
+    it('should handle WHIP URL with trailing slash', () => {
+      const whipUrl = 'https://example.com/gateway/ai/stream/start/'
+      const streamId = 'test-stream-456'
+      
+      const buildUpdateUrl = (publisher as any).buildUpdateUrl.bind(publisher)
+      const result = buildUpdateUrl(streamId, whipUrl)
+      
+      expect(result).toBe('https://example.com/gateway/ai/stream/test-stream-456/update')
+      // Check for double slashes in path (excluding protocol)
+      const pathPart = result.split('://')[1]
+      expect(pathPart).not.toContain('//')
     })
   })
 })

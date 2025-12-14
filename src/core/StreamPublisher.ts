@@ -459,7 +459,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     try {
       const url = new URL(whipUrl)
       // Remove '/stream/start' from pathname and query parameters
-      url.pathname = url.pathname.replace(/\/stream\/start$/, '')
+      url.pathname = url.pathname.replace(/\/stream\/start\/?$/, '').replace(/\/$/, '')
       url.pathname = `${url.pathname}/stream/${streamId}/status`
       url.search = '' // Remove query parameters
       return url.toString()
@@ -477,7 +477,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     try {
       const url = new URL(whipUrl)
       // Remove '/stream/start' from pathname and query parameters
-      url.pathname = url.pathname.replace(/\/stream\/start$/, '')
+      url.pathname = url.pathname.replace(/\/stream\/start\/?$/, '').replace(/\/$/, '')
       url.pathname = `${url.pathname}/stream/${streamId}/update`
       url.search = '' // Remove query parameters
       return url.toString()
