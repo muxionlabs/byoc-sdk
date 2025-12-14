@@ -7,7 +7,9 @@ import { StreamPublisher } from '../core/StreamPublisher'
 import { StreamConfig } from '../types'
 
 describe('StreamPublisher URL building', () => {
-  const config = new StreamConfig('https://example.com:8088')
+  const config = new StreamConfig({
+    gatewayUrl: 'https://example.com:8088'
+  })
   const publisher = new StreamPublisher(config)
 
   describe('buildStatusUrl', () => {

@@ -25,7 +25,8 @@ const WORKFLOWS_URL =
   (import.meta.env?.VITE_BYOC_WORKFLOWS_URL as string | undefined) ||
   `${BASE_URL}/workflows/`
 
-const demoConfig = new StreamConfig(BASE_URL, {
+const demoConfig = new StreamConfig({
+  gatewayUrl: BASE_URL,
   defaultPipeline: 'comfystream'
 })
 

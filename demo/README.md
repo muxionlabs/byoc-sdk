@@ -40,15 +40,12 @@ Set the variable before running `npm run dev` or `npm run build` to target a dif
 
 **Example configuration in App.tsx:**
 ```typescript
-// Simple form
-const config = new StreamConfig(BASE_URL)
-
-// With named options (recommended)
-const config = new StreamConfig(BASE_URL, {
-  defaultPipeline: 'comfystream'
+// Simple
+const config = new StreamConfig({
+  gatewayUrl: BASE_URL
 })
 
-// Object form
+// With options (recommended)
 const config = new StreamConfig({
   gatewayUrl: BASE_URL,
   defaultPipeline: 'comfystream'

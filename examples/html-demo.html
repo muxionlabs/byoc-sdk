@@ -94,7 +94,8 @@
     import { StreamPublisher, StreamViewer, StreamConfig } from '../dist/index.mjs'
 
     // Configuration
-    const config = new StreamConfig('https://eliteencoder.net:8088', {
+    const config = new StreamConfig({
+      gatewayUrl: 'https://eliteencoder.net:8088',
       defaultPipeline: 'comfystream'
     })
 

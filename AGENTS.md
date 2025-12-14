@@ -120,29 +120,28 @@ A full Create React App / Vite application that demonstrates:
 All components take a `StreamConfig` instance. `StreamConfig` is a class that encapsulates gateway URL and derives endpoint paths:
 
 ```typescript
-// 1. Simple form - just gateway URL
-const config = new StreamConfig('https://gateway.example.com:8088')
-
-// 2. Positional with named options - clean and explicit
-const config = new StreamConfig('https://gateway.example.com:8088', {
-  defaultPipeline: 'comfystream'
+// Simple - just the gateway URL (required)
+const config = new StreamConfig({
+  gatewayUrl: 'https://gateway.example.com:8088'
 })
 
-// 3. Object form - for maximum control
+// With options - add pipeline, custom paths, etc.
 const config = new StreamConfig({
   gatewayUrl: 'https://gateway.example.com:8088',
   defaultPipeline: 'comfystream',
-  iceServers: [...],
-  whipPath: '/gateway/ai/stream/start',
-  whepPath: '/mediamtx',
-  dataPath: '/gateway/'
+  // Optional: customize paths (defaults provided)
+  whipPath: '/gateway/ai/stream/start',  // default
+  whepPath: '/mediamtx',                  // default
+  dataPath: '/gateway/',                  // default
+  iceServers: [...]                       // custom ICE servers
 })
 ```
 
 **Key Design Principles**:
-- **Single source of truth**: Gateway URL is set once, all endpoint URLs are derived automatically
+- **Single source of truth**: Gateway URL is the only required field, all endpoint URLs are derived automatically
+- **Simplicity**: One parameter object with sensible defaults
 - **Encapsulation**: StreamConfig internally constructs WHIP, WHEP, and data URLs via helper methods (`getWhipUrl()`, `getWhepUrl()`, `getDataUrl()`)
-- **Flexibility**: Optional path overrides for non-standard gateway configurations
+- **Customization**: Optional path overrides for non-standard gateway configurations (all have defaults)
 
 **URL Construction Pattern**:
 ```typescript
