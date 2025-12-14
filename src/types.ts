@@ -165,7 +165,11 @@ export interface StreamUpdateOptions {
 }
 
 export interface ViewerStartOptions {
-  /** Playback URL path from gateway (e.g., '/stream/abc-123/whep'). SDK will construct full WHEP URL. */
+  /**
+   * Playback URL path or full URL from gateway.
+   * Accepts either a relative path (e.g., '/stream/abc-123/whep') or a full URL (e.g., 'https://gateway.example.com/stream/abc-123/whep').
+   * SDK will construct the full WHEP URL if a relative path is provided, or use the full URL as-is.
+   */
   playbackUrl?: string
 }
 
