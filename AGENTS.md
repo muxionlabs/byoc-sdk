@@ -132,7 +132,7 @@ const config = new StreamConfig({
   // Optional: customize paths (defaults provided)
   whipPath: '/gateway/ai/stream/start',  // default
   whepPath: '/mediamtx',                  // default
-  dataPath: '/gateway/',                  // default
+  dataPath: '/gateway/ai/stream/',        // default
   iceServers: [...]                       // custom ICE servers
 })
 ```
@@ -153,7 +153,7 @@ config.getWhepUrl(playbackUrl)
 // → https://gateway.example.com:8088/mediamtx/stream/xyz/whep
 
 config.getDataUrl('my-stream')
-// → https://gateway.example.com:8088/gateway/live/video-to-video/my-stream/data
+// → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
 ```
 
 Core components (`StreamPublisher`, `StreamViewer`, `DataStreamClient`) use these methods internally, so users rarely call them directly.

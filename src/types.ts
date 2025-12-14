@@ -31,7 +31,7 @@ export class StreamConfig {
     whipPath?: string
     /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
     whepPath?: string
-    /** Custom base path for data streams (defaults to '/gateway/') */
+    /** Custom base path for data streams (defaults to '/gateway/ai/stream/') */
     dataPath?: string
   }) {
     this.gatewayUrl = this.trimTrailingSlash(config.gatewayUrl)
@@ -40,7 +40,7 @@ export class StreamConfig {
 
     this.whipPath = this.normalizePath(config.whipPath ?? '/gateway/ai/stream/start')
     this.whepPath = this.normalizePath(config.whepPath ?? '/mediamtx')
-    this.dataPath = this.normalizePath(config.dataPath ?? '/gateway/')
+    this.dataPath = this.normalizePath(config.dataPath ?? '/gateway/ai/stream/')
 
     this.whipBaseUrl = `${this.gatewayUrl}${this.whipPath}`
     this.whepBaseUrl = `${this.gatewayUrl}${this.whepPath}`
