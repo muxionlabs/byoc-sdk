@@ -21,33 +21,14 @@ const rawBaseUrl =
   (import.meta.env?.VITE_BYOC_BASE_URL as string | undefined) || 'https://eliteencoder.net:8088'
 const BASE_URL = rawBaseUrl.replace(/\/$/, '')
 
-const WHIP_URL =
-  (import.meta.env?.VITE_BYOC_WHIP_URL as string | undefined) ||
-  `${BASE_URL}/gateway/ai/stream/start`
-
-const WHEP_URL =
-  (import.meta.env?.VITE_BYOC_WHEP_URL as string | undefined) ||
-  `${BASE_URL}/mediamtx`
-
-const DATA_STREAM_URL =
-  (import.meta.env?.VITE_BYOC_DATA_STREAM_URL as string | undefined) ||
-  `${BASE_URL}/gateway`
-
-const KAFKA_EVENTS_URL =
-  (import.meta.env?.VITE_BYOC_KAFKA_EVENTS_URL as string | undefined) ||
-  `${BASE_URL}/kafka/events`
-
 const WORKFLOWS_URL =
   (import.meta.env?.VITE_BYOC_WORKFLOWS_URL as string | undefined) ||
   `${BASE_URL}/workflows/`
 
-const demoConfig: StreamConfig = {
-  whipUrl: WHIP_URL,
-  whepUrl: WHEP_URL,
-  dataStreamUrl: DATA_STREAM_URL,
-  kafkaEventsUrl: KAFKA_EVENTS_URL,
+const demoConfig = new StreamConfig({
+  gatewayUrl: BASE_URL,
   defaultPipeline: 'comfystream'
-}
+})
 
 const badgeByStatus: Record<string, string> = {
   connected: 'badge-connected',
@@ -227,7 +208,7 @@ function App() {
     },
     onStreamStarted: (response) => {
       addLog('✅ Stream started successfully', 'success')
-      lastViewerUrlRef.current = response.whepUrl || response.playbackUrl || ''
+      lastViewerUrlRef.current = response.whepUrl || ''
     },
     onStreamStopped: () => {
       addLog('⏹️ Stream stopped', 'info')
@@ -283,22 +264,20 @@ function App() {
       return
     }
 
-    const targetUrl = streamInfo?.whepUrl || streamInfo?.playbackUrl
-    if (!targetUrl) return
-    if (lastViewerUrlRef.current === targetUrl && isViewing) {
+    const whepUrl = streamInfo?.whepUrl
+    if (!whepUrl) return
+    if (lastViewerUrlRef.current === whepUrl && isViewing) {
       return
     }
 
-    lastViewerUrlRef.current = targetUrl
+    lastViewerUrlRef.current = whepUrl
     startViewerWithRetry({
-      whepUrl: streamInfo?.whepUrl || undefined,
-      playbackUrl: streamInfo?.playbackUrl || undefined
+      whepUrl: whepUrl
     })
   }, [
     isStreaming,
     isViewing,
     streamInfo?.whepUrl,
-    streamInfo?.playbackUrl,
     startViewerWithRetry,
     stopViewing,
     addLog,
@@ -455,7 +434,6 @@ function App() {
           isStreaming={isStreaming}
           viewerStatus={viewerStatus}
           streamInfo={streamInfo}
-          config={demoConfig}
           combinedError={combinedError}
           streamName={streamName}
           pipeline={pipeline}
@@ -471,7 +449,7 @@ function App() {
           onUpdatePrompts={handleUpdatePrompts}
         />
 
-        <StreamInfo streamInfo={streamInfo} config={demoConfig} />
+        <StreamInfo streamInfo={streamInfo} />
         <ConsoleLog logs={logs} containerRef={logContainerRef} />
       </div>
     </div>

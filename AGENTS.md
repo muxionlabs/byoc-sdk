@@ -117,16 +117,47 @@ A full Create React App / Vite application that demonstrates:
 
 ### Configuration
 
-All components take a `StreamConfig` object:
+All components take a `StreamConfig` instance. `StreamConfig` is a class that encapsulates gateway URL and derives endpoint paths:
 
 ```typescript
-export interface StreamConfig {
-  whipUrl: string;      // Ingest URL
-  whepUrl: string;      // Playback URL
-  dataStreamUrl: string;// SSE URL
-  // ...
-}
+// Simple - just the gateway URL (required)
+const config = new StreamConfig({
+  gatewayUrl: 'https://gateway.example.com:8088'
+})
+
+// With options - add pipeline, custom paths, etc.
+const config = new StreamConfig({
+  gatewayUrl: 'https://gateway.example.com:8088',
+  defaultPipeline: 'comfystream',
+  // Optional: customize paths (defaults provided)
+  whipPath: '/gateway/ai/stream/start',  // default
+  whepPath: '/mediamtx',                  // default
+  dataPath: '/gateway/ai/stream/',        // default
+  iceServers: [...]                       // custom ICE servers
+})
 ```
+
+**Key Design Principles**:
+- **Single source of truth**: Gateway URL is the only required field, all endpoint URLs are derived automatically
+- **Simplicity**: One parameter object with sensible defaults
+- **Encapsulation**: StreamConfig provides helper methods for constructing control-plane URLs (`getWhipUrl()`, `getDataUrl()`, `getStatusUrl()`, `getUpdateUrl()`, `getStopUrl()`)
+- **Gateway-first**: Data-plane URLs (like `whepUrl`) are returned directly by the gateway as full URLs and used as-is
+- **Customization**: Optional path overrides for non-standard gateway configurations (all have defaults)
+
+**URL Construction Pattern**:
+```typescript
+// StreamConfig builds control-plane URLs from base gateway URL + paths
+config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
+// → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
+
+config.getStatusUrl('stream-123')
+// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/status
+
+config.getDataUrl('my-stream')
+// → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
+```
+
+**Key Design Principle**: Gateway returns full URLs for data-plane endpoints (like `whepUrl`). The SDK uses these directly without additional construction. Control-plane URLs (status, update, stop) are derived from the gateway base URL using StreamConfig helpers.
 
 ### Error Handling
 
@@ -137,7 +168,10 @@ export interface StreamConfig {
 ### Type Safety
 
 - Extensive use of TypeScript interfaces for API responses and configuration.
-- `ComfyUIParams` and other specific types for AI control.
+- `StreamConfig` constructor accepts an inline typed object (no separate `StreamConfigOptions` interface needed).
+- Specific types exported for options: `StreamStartOptions`, `StreamUpdateOptions`, `ViewerStartOptions`, `DataStreamOptions`.
+- Response types: `StreamStartResponse`, `WhipOfferResponse`, `WhepOfferResponse`.
+- Error classes: `StreamError`, `ConnectionError`, `MediaError`.
 
 ---
 

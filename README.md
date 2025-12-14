@@ -8,7 +8,7 @@ Production-quality SDK for Livepeer BYOC video streaming with AI-powered insight
 - 🤖 **AI-ready** pipelines with custom params/state updates
 - 📊 **SSE data streaming** for stats and text insights
 - 📱 **Media device management** with permissions and device lists
-- ⚛️ **React hooks** for publisher, viewer, data, and event flows
+- ⚛️ **React hooks** for publisher, viewer, and data flows
 - 📦 **TypeScript-first** exports with ESM/CJS builds
 - 🔄 **Robust retries** plus connection monitoring and stats
 
@@ -36,15 +36,18 @@ The `serve:examples` script spins up `http-server` against the repo root and imm
 import { StreamPublisher, StreamConfig } from '@muxionlabs/byoc-sdk'
 
 // Define your gateway base URL
-const GATEWAY_URL = 'https://your-gateway.example.com'
+const GATEWAY_URL = 'https://your-gateway.example.com:8088'
 
-const config: StreamConfig = {
-  whipUrl: `${GATEWAY_URL}/gateway/ai/stream/start`,
-  whepUrl: `${GATEWAY_URL}/mediamtx`,
-  dataStreamUrl: `${GATEWAY_URL}/gateway`,
-  kafkaEventsUrl: `${GATEWAY_URL}/gateway/kafka/events`,
+// Simple configuration
+const config = new StreamConfig({
+  gatewayUrl: GATEWAY_URL
+})
+
+// With options
+const config = new StreamConfig({
+  gatewayUrl: GATEWAY_URL,
   defaultPipeline: 'comfystream'
-}
+})
 
 const publisher = new StreamPublisher(config)
 

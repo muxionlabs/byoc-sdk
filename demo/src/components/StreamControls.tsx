@@ -1,5 +1,5 @@
 import { ChangeEvent } from 'react'
-import { StreamConfig, StreamStartResponse } from '@muxionlabs/byoc-sdk'
+import { StreamStartResponse } from '@muxionlabs/byoc-sdk'
 import { SavedWorkflow } from '../types'
 
 interface StreamControlsProps {
@@ -8,7 +8,6 @@ interface StreamControlsProps {
   isStreaming: boolean
   viewerStatus: string
   streamInfo: StreamStartResponse | null
-  config: StreamConfig
   combinedError: string | null
   streamName: string
   pipeline: string
@@ -30,7 +29,6 @@ export function StreamControls({
   isStreaming,
   viewerStatus,
   streamInfo,
-  config,
   combinedError,
   streamName,
   pipeline,
@@ -59,8 +57,8 @@ export function StreamControls({
         )}
         <div className="mini-info">
           <span>Stream ID: {streamInfo?.streamId || '-'}</span>
-          <span>WHEP: {streamInfo?.whepUrl || config.whepUrl}</span>
-          <span>Data: {streamInfo?.dataUrl || config.dataStreamUrl}</span>
+          <span>WHEP: {streamInfo?.whepUrl || '-'}</span>
+          <span>Data: {streamInfo?.dataUrl || '-'}</span>
           <span>Viewer: {viewerStatus}</span>
         </div>
       </div>

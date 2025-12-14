@@ -2,23 +2,140 @@
  * Core types and interfaces for Livepeer BYOC Stream SDK
  */
 
+import { constructDataStreamUrl, constructWhipUrl, constructWhepUrl } from './utils/urls'
+
 // ============================================================================
 // Stream Configuration Types
 // ============================================================================
 
-export interface StreamConfig {
-  /** Base URL for the WHIP endpoint (stream start) */
-  whipUrl: string
-  /** Base URL for the WHEP endpoint (stream viewing) */
-  whepUrl: string
-  /** Base URL for data streaming (SSE) */
-  dataStreamUrl: string
-  /** Base URL for Kafka events (SSE) */
-  kafkaEventsUrl: string
-  /** Default pipeline name */
-  defaultPipeline?: string
-  /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
-  iceServers?: RTCIceServer[]
+export class StreamConfig {
+  public readonly gatewayUrl: string
+  public readonly defaultPipeline?: string
+  public readonly iceServers?: RTCIceServer[]
+
+  private readonly whipPath: string
+  private readonly whepPath: string
+  private readonly dataPath: string
+  private readonly whipBaseUrl: string
+  private readonly whepBaseUrl: string
+  private readonly dataBaseUrl: string
+  private readonly streamBasePath: string
+  private readonly streamBaseUrl: string
+
+  constructor(config: {
+    /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
+    gatewayUrl: string
+    /** Default pipeline name */
+    defaultPipeline?: string
+    /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
+    iceServers?: RTCIceServer[]
+    /** Custom path for WHIP endpoint (defaults to '/gateway/ai/stream/start') */
+    whipPath?: string
+    /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
+    whepPath?: string
+    /** Custom base path for data streams (defaults to '/gateway/ai/stream/') */
+    dataPath?: string
+  }) {
+    this.gatewayUrl = this.trimTrailingSlash(config.gatewayUrl)
+    this.defaultPipeline = config.defaultPipeline
+    this.iceServers = config.iceServers
+
+    this.whipPath = this.normalizePath(config.whipPath ?? '/gateway/ai/stream/start')
+    this.whepPath = this.normalizePath(config.whepPath ?? '/mediamtx')
+    this.dataPath = this.normalizePath(config.dataPath ?? '/gateway/ai/stream/')
+
+    this.streamBasePath = this.deriveStreamBasePath(this.whipPath)
+    this.whipBaseUrl = `${this.gatewayUrl}${this.whipPath}`
+    this.whepBaseUrl = `${this.gatewayUrl}${this.whepPath}`
+    this.dataBaseUrl = `${this.gatewayUrl}${this.dataPath}`
+    this.streamBaseUrl = `${this.gatewayUrl}${this.streamBasePath}`
+  }
+
+  /**
+   * Build a WHIP URL using configured gateway and path
+   */
+  getWhipUrl(params?: {
+    pipeline?: string
+    width?: number
+    height?: number
+    customParams?: Record<string, any>
+    streamId?: string
+  }): string {
+    return constructWhipUrl(
+      this.whipBaseUrl,
+      params?.pipeline,
+      params?.width,
+      params?.height,
+      params?.customParams,
+      params?.streamId
+    )
+  }
+
+  /**
+   * Build a WHEP URL using configured gateway and path
+   */
+  getWhepUrl(playbackUrl?: string): string {
+    return constructWhepUrl(this.whepBaseUrl, playbackUrl)
+  }
+
+  /**
+   * Build a data URL for a given stream
+   */
+  getDataUrl(streamName: string, customDataUrl?: string): string {
+    return constructDataStreamUrl(this.dataBaseUrl, streamName, customDataUrl)
+  }
+
+  /**
+   * Build a status URL for a given stream ID
+   */
+  getStatusUrl(streamId: string): string {
+    return `${this.streamBaseUrl}/${streamId}/status`
+  }
+
+  /**
+   * Build an update URL for a given stream ID
+   */
+  getUpdateUrl(streamId: string): string {
+    return `${this.streamBaseUrl}/${streamId}/update`
+  }
+
+  /**
+   * Build a stop URL for a given stream ID
+   */
+  getStopUrl(streamId: string): string {
+    return `${this.streamBaseUrl}/${streamId}/stop`
+  }
+
+  /**
+   * Remove all trailing slashes from a URL
+   * @private
+   */
+  private trimTrailingSlash(url: string): string {
+    let trimmed = url
+    while (trimmed.endsWith('/')) {
+      trimmed = trimmed.slice(0, -1)
+    }
+    return trimmed
+  }
+
+  /**
+   * Ensure path starts with a leading slash
+   * @private
+   */
+  private normalizePath(path: string): string {
+    return path.startsWith('/') ? path : `/${path}`
+  }
+
+  /**
+   * Derive the base stream path from WHIP path by removing '/start' suffix
+   * Example: '/gateway/ai/stream/start' -> '/gateway/ai/stream'
+   * Used to construct status, update, and stop URLs
+   * @private
+   */
+  private deriveStreamBasePath(whipPath: string): string {
+    const withoutStart = whipPath.replace(/\/start\/?$/, '')
+    return this.normalizePath(withoutStart.replace(/\/$/, ''))
+  }
 }
 
 export interface StreamStartOptions {
@@ -62,9 +179,7 @@ export interface StreamUpdateOptions {
 }
 
 export interface ViewerStartOptions {
-  /** Playback URL (optional if using WHEP URL from stream start) */
-  playbackUrl?: string
-  /** WHEP URL override (optional, uses config if not provided) */
+  /** WHEP URL for viewing the stream. Should be the full URL returned from gateway's whep_url field. */
   whepUrl?: string
 }
 
@@ -149,27 +264,6 @@ export interface DataStreamEvent {
 }
 
 // ============================================================================
-// Event Stream Types
-// ============================================================================
-
-export interface EventStreamOptions {
-  /** Stream name to subscribe to */
-  streamName: string
-  /** Kafka events URL override (uses config if not provided) */
-  kafkaEventsUrl?: string
-  /** Maximum number of events to keep in memory */
-  maxEvents?: number
-}
-
-export interface EventLog {
-  id: string
-  level: 'info' | 'warn' | 'error' | 'debug'
-  message: string
-  timestamp: number
-  data?: any
-}
-
-// ============================================================================
 // Media Device Types
 // ============================================================================
 
@@ -241,13 +335,6 @@ export type DataStreamEventMap = {
   connected: void
   disconnected: void
   data: DataStreamEvent
-  error: Error
-}
-
-export type EventStreamEventMap = {
-  connected: void
-  disconnected: void
-  event: EventLog
   error: Error
 }
 
