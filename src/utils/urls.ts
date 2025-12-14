@@ -10,27 +10,18 @@ export function generateStreamId(): string {
 }
 
 /**
- * Constructs a WHIP URL with all necessary parameters
+ * Constructs a WHIP URL from gateway base URL
  */
 export function constructWhipUrl(
-  baseUrl: string,
-  streamName: string,
-  pipeline: string,
+  gatewayUrl: string,
+  pipeline?: string,
   width?: number,
   height?: number,
   customParams?: Record<string, any>,
   streamId?: string
 ): string {
+  const baseUrl = `${gatewayUrl.replace(/\/$/, '')}/gateway/ai/stream/start`
   const url = new URL(baseUrl)
-
-  // Add stream name to the path if provided and the path doesn't already end with '/whip'
-  if (streamName && streamName.trim()) {
-    const safeName = streamName.trim()
-    if (!url.pathname.endsWith('/whip')) {
-      url.pathname = url.pathname.replace(/\/$/, '')
-      url.pathname += `/${safeName}/whip`
-    }
-  }
 
   // Add pipeline parameter
   if (pipeline && pipeline.trim()) {
@@ -62,9 +53,11 @@ export function constructWhipUrl(
 }
 
 /**
- * Constructs a WHEP URL from base URL and playback URL path
+ * Constructs a WHEP URL from gateway base URL
  */
-export function constructWhepUrl(whepUrl: string, playbackUrl?: string): string {
+export function constructWhepUrl(gatewayUrl: string, playbackUrl?: string): string {
+  const whepUrl = `${gatewayUrl.replace(/\/$/, '')}/mediamtx`
+  
   if (!playbackUrl) return whepUrl
   
   // If playbackUrl is a full URL, use it directly
@@ -84,30 +77,15 @@ export function constructWhepUrl(whepUrl: string, playbackUrl?: string): string 
 }
 
 /**
- * Construct data stream URL
+ * Construct data stream URL from gateway base URL
  */
 export function constructDataStreamUrl(
-  baseUrl: string,
+  gatewayUrl: string,
   streamName: string,
   customDataUrl?: string
 ): string {
   if (customDataUrl) {
     return customDataUrl
   }
-  return `${baseUrl}/live/video-to-video/${streamName}/data`
+  return `${gatewayUrl.replace(/\/$/, '')}/gateway/live/video-to-video/${streamName}/data`
 }
-
-/**
- * Construct Kafka events URL
- */
-export function constructKafkaEventsUrl(
-  baseUrl: string,
-  streamName: string,
-  customEventsUrl?: string
-): string {
-  if (customEventsUrl) {
-    return customEventsUrl
-  }
-  return `${baseUrl}/live/${streamName}/events`
-}
-

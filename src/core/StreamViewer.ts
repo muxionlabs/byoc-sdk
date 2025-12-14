@@ -66,7 +66,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
       this.setStatus('connecting')
 
       // Use WHEP URL from options or config
-      const whepBaseUrl = options.whepUrl || this.config.whepUrl
+      const whepBaseUrl = options.whepUrl || constructWhepUrl(this.config.gatewayUrl)
       const whepUrl = constructWhepUrl(whepBaseUrl, options.playbackUrl)
 
       if (!whepUrl) {
@@ -281,4 +281,3 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
     this.setStatus('disconnected')
   }
 }
-

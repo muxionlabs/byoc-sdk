@@ -21,31 +21,12 @@ const rawBaseUrl =
   (import.meta.env?.VITE_BYOC_BASE_URL as string | undefined) || 'https://eliteencoder.net:8088'
 const BASE_URL = rawBaseUrl.replace(/\/$/, '')
 
-const WHIP_URL =
-  (import.meta.env?.VITE_BYOC_WHIP_URL as string | undefined) ||
-  `${BASE_URL}/gateway/ai/stream/start`
-
-const WHEP_URL =
-  (import.meta.env?.VITE_BYOC_WHEP_URL as string | undefined) ||
-  `${BASE_URL}/mediamtx`
-
-const DATA_STREAM_URL =
-  (import.meta.env?.VITE_BYOC_DATA_STREAM_URL as string | undefined) ||
-  `${BASE_URL}/gateway`
-
-const KAFKA_EVENTS_URL =
-  (import.meta.env?.VITE_BYOC_KAFKA_EVENTS_URL as string | undefined) ||
-  `${BASE_URL}/kafka/events`
-
 const WORKFLOWS_URL =
   (import.meta.env?.VITE_BYOC_WORKFLOWS_URL as string | undefined) ||
   `${BASE_URL}/workflows/`
 
 const demoConfig: StreamConfig = {
-  whipUrl: WHIP_URL,
-  whepUrl: WHEP_URL,
-  dataStreamUrl: DATA_STREAM_URL,
-  kafkaEventsUrl: KAFKA_EVENTS_URL,
+  gatewayUrl: BASE_URL,
   defaultPipeline: 'comfystream'
 }
 
@@ -479,4 +460,3 @@ function App() {
 }
 
 export default App
-

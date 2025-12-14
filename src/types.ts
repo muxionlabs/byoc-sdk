@@ -7,14 +7,8 @@
 // ============================================================================
 
 export interface StreamConfig {
-  /** Base URL for the WHIP endpoint (stream start) */
-  whipUrl: string
-  /** Base URL for the WHEP endpoint (stream viewing) */
-  whepUrl: string
-  /** Base URL for data streaming (SSE) */
-  dataStreamUrl: string
-  /** Base URL for Kafka events (SSE) */
-  kafkaEventsUrl: string
+  /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
+  gatewayUrl: string
   /** Default pipeline name */
   defaultPipeline?: string
   /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
@@ -149,27 +143,6 @@ export interface DataStreamEvent {
 }
 
 // ============================================================================
-// Event Stream Types
-// ============================================================================
-
-export interface EventStreamOptions {
-  /** Stream name to subscribe to */
-  streamName: string
-  /** Kafka events URL override (uses config if not provided) */
-  kafkaEventsUrl?: string
-  /** Maximum number of events to keep in memory */
-  maxEvents?: number
-}
-
-export interface EventLog {
-  id: string
-  level: 'info' | 'warn' | 'error' | 'debug'
-  message: string
-  timestamp: number
-  data?: any
-}
-
-// ============================================================================
 // Media Device Types
 // ============================================================================
 
@@ -244,13 +217,6 @@ export type DataStreamEventMap = {
   error: Error
 }
 
-export type EventStreamEventMap = {
-  connected: void
-  disconnected: void
-  event: EventLog
-  error: Error
-}
-
 // ============================================================================
 // Utility Types
 // ============================================================================
@@ -262,4 +228,3 @@ export interface EventEmitter<EventMap extends Record<string, any>> {
   off<K extends keyof EventMap>(event: K, callback: EventCallback<EventMap[K]>): void
   emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void
 }
-

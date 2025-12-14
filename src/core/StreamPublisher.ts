@@ -15,7 +15,12 @@ import {
   ConnectionError
 } from '../types'
 import { EventEmitter } from '../utils/EventEmitter'
-import { generateStreamId } from '../utils/urls'
+import { 
+  generateStreamId, 
+  constructWhipUrl, 
+  constructWhepUrl, 
+  constructDataStreamUrl 
+} from '../utils/urls'
 import { sendWhipOffer, stopStream, initializeGatewayStream } from '../api/whip'
 import { sendStreamUpdate } from '../api/stream-update'
 
@@ -126,11 +131,12 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       await this.waitForICEGathering(this.peerConnection)
 
       // Initialize session via gateway to get the actual WHIP URL
-      const initData = await initializeGatewayStream(this.config.whipUrl, options)
-      const whipUrl = initData.whipUrl
+      const whipUrl = constructWhipUrl(this.config.gatewayUrl)
+      const initData = await initializeGatewayStream(whipUrl, options)
+      const sessionWhipUrl = initData.whipUrl
 
       // Send WHIP offer to the URL returned by the gateway
-      const response = await sendWhipOffer(whipUrl, this.peerConnection.localDescription!.sdp)
+      const response = await sendWhipOffer(sessionWhipUrl, this.peerConnection.localDescription!.sdp)
 
       // Set remote description
       await this.peerConnection.setRemoteDescription({
@@ -142,13 +148,14 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       const gatewayStreamId = initData.streamId || streamId
       const resolvedStreamId = response.streamId || gatewayStreamId || streamId
       const resolvedPlaybackUrl = response.playbackUrl || initData.playbackUrl || null
-      const resolvedWhepUrl = initData.whepUrl || resolvedPlaybackUrl || this.config.whepUrl || null
+      const resolvedWhepUrl = initData.whepUrl || resolvedPlaybackUrl || 
+        constructWhepUrl(this.config.gatewayUrl) || null
       const resolvedDataUrl =
         initData.dataUrl || (options.streamName ? this.buildDataUrl(options.streamName) : null)
       const resolvedStatusUrl =
-        initData.statusUrl || (resolvedStreamId ? this.buildStatusUrl(resolvedStreamId) : null)
+        initData.statusUrl || (resolvedStreamId ? this.buildStatusUrl(resolvedStreamId, sessionWhipUrl) : null)
       const resolvedUpdateUrl =
-        initData.updateUrl || (resolvedStreamId ? this.buildUpdateUrl(resolvedStreamId) : null)
+        initData.updateUrl || (resolvedStreamId ? this.buildUpdateUrl(resolvedStreamId, sessionWhipUrl) : null)
       const resolvedRtmpUrl = initData.rtmpUrl || null
 
       this.streamInfo = {
@@ -189,9 +196,11 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     try {
       // Send stop request if we have stream info
       if (this.streamInfo.streamId) {
+        // We need the base WHIP URL for the stop request
+        const whipUrl = constructWhipUrl(this.config.gatewayUrl)
         await stopStream(
           this.streamInfo.streamId,
-          this.config.whipUrl,
+          whipUrl,
           this.resolveActivePipeline('stop')
         )
       }
@@ -436,21 +445,21 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
    * Build data URL from stream name
    */
   private buildDataUrl(streamName: string): string {
-    return `${this.config.dataStreamUrl}/live/video-to-video/${streamName}/data`
+    return constructDataStreamUrl(this.config.gatewayUrl, streamName)
   }
 
   /**
    * Build status URL from stream ID
    */
-  private buildStatusUrl(streamId: string): string {
-    return `${this.config.whipUrl.replace('/stream/start', '')}/stream/${streamId}/status`
+  private buildStatusUrl(streamId: string, whipUrl: string): string {
+    return `${whipUrl.replace('/stream/start', '')}/stream/${streamId}/status`
   }
 
   /**
    * Build update URL from stream ID
    */
-  private buildUpdateUrl(streamId: string): string {
-    return `${this.config.whipUrl.replace('/stream/start', '')}/stream/${streamId}/update`
+  private buildUpdateUrl(streamId: string, whipUrl: string): string {
+    return `${whipUrl.replace('/stream/start', '')}/stream/${streamId}/update`
   }
 
   /**
@@ -500,4 +509,3 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     this.currentPipeline = null
   }
 }
-

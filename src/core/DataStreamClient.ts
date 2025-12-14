@@ -63,7 +63,7 @@ export class DataStreamClient extends EventEmitter<DataStreamEventMap> {
 
       // Construct SSE URL
       const sseUrl = options.dataUrl || constructDataStreamUrl(
-        this.config.dataStreamUrl,
+        this.config.gatewayUrl,
         options.streamName
       )
 
@@ -152,4 +152,3 @@ export class DataStreamClient extends EventEmitter<DataStreamEventMap> {
     this.emit('disconnected', undefined)
   }
 }
-
