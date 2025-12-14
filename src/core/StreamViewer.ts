@@ -282,3 +282,4 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
     this.setStatus('disconnected')
   }
 }
+

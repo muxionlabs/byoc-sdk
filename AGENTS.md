@@ -117,15 +117,47 @@ A full Create React App / Vite application that demonstrates:
 
 ### Configuration
 
-All components take a `StreamConfig` object:
+All components take a `StreamConfig` instance. `StreamConfig` is a class that encapsulates gateway URL and derives endpoint paths:
 
 ```typescript
-export interface StreamConfig {
-  gatewayUrl: string;     // Base URL of the gateway
-  defaultPipeline?: string; // Default pipeline name
-  // ...
-}
+// 1. Simple form - just gateway URL
+const config = new StreamConfig('https://gateway.example.com:8088')
+
+// 2. Positional with named options - clean and explicit
+const config = new StreamConfig('https://gateway.example.com:8088', {
+  defaultPipeline: 'comfystream'
+})
+
+// 3. Object form - for maximum control
+const config = new StreamConfig({
+  gatewayUrl: 'https://gateway.example.com:8088',
+  defaultPipeline: 'comfystream',
+  iceServers: [...],
+  whipPath: '/gateway/ai/stream/start',
+  whepPath: '/mediamtx',
+  dataPath: '/gateway/'
+})
 ```
+
+**Key Design Principles**:
+- **Single source of truth**: Gateway URL is set once, all endpoint URLs are derived automatically
+- **Encapsulation**: StreamConfig internally constructs WHIP, WHEP, and data URLs via helper methods (`getWhipUrl()`, `getWhepUrl()`, `getDataUrl()`)
+- **Flexibility**: Optional path overrides for non-standard gateway configurations
+
+**URL Construction Pattern**:
+```typescript
+// StreamConfig builds full URLs from base gateway URL + paths
+config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
+// → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
+
+config.getWhepUrl(playbackUrl)
+// → https://gateway.example.com:8088/mediamtx/stream/xyz/whep
+
+config.getDataUrl('my-stream')
+// → https://gateway.example.com:8088/gateway/live/video-to-video/my-stream/data
+```
+
+Core components (`StreamPublisher`, `StreamViewer`, `DataStreamClient`) use these methods internally, so users rarely call them directly.
 
 ### Error Handling
 
@@ -136,7 +168,10 @@ export interface StreamConfig {
 ### Type Safety
 
 - Extensive use of TypeScript interfaces for API responses and configuration.
-- `ComfyUIParams` and other specific types for AI control.
+- `StreamConfig` constructor accepts an inline typed object (no separate `StreamConfigOptions` interface needed).
+- Specific types exported for options: `StreamStartOptions`, `StreamUpdateOptions`, `ViewerStartOptions`, `DataStreamOptions`.
+- Response types: `StreamStartResponse`, `WhipOfferResponse`, `WhepOfferResponse`.
+- Error classes: `StreamError`, `ConnectionError`, `MediaError`.
 
 ---
 
@@ -171,3 +206,4 @@ To test changes in the demo app:
 3. Check error handling and cleanup (closing connections).
 
 ---
+

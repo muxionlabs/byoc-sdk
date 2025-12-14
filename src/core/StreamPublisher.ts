@@ -456,14 +456,36 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
    * Build status URL from stream ID
    */
   private buildStatusUrl(streamId: string, whipUrl: string): string {
-    return `${whipUrl.replace('/stream/start', '')}/stream/${streamId}/status`
+    try {
+      const url = new URL(whipUrl)
+      // Remove '/stream/start' from pathname and query parameters
+      url.pathname = url.pathname.replace(/\/stream\/start$/, '')
+      url.pathname = `${url.pathname}/stream/${streamId}/status`
+      url.search = '' // Remove query parameters
+      return url.toString()
+    } catch (error) {
+      // Fallback to simple string replacement if URL parsing fails
+      console.warn('Failed to parse WHIP URL for status URL, using fallback:', error)
+      return `${whipUrl.replace('/stream/start', '')}/stream/${streamId}/status`
+    }
   }
 
   /**
    * Build update URL from stream ID
    */
   private buildUpdateUrl(streamId: string, whipUrl: string): string {
-    return `${whipUrl.replace('/stream/start', '')}/stream/${streamId}/update`
+    try {
+      const url = new URL(whipUrl)
+      // Remove '/stream/start' from pathname and query parameters
+      url.pathname = url.pathname.replace(/\/stream\/start$/, '')
+      url.pathname = `${url.pathname}/stream/${streamId}/update`
+      url.search = '' // Remove query parameters
+      return url.toString()
+    } catch (error) {
+      // Fallback to simple string replacement if URL parsing fails
+      console.warn('Failed to parse WHIP URL for update URL, using fallback:', error)
+      return `${whipUrl.replace('/stream/start', '')}/stream/${streamId}/update`
+    }
   }
 
   /**
@@ -513,3 +535,4 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     this.currentPipeline = null
   }
 }
+

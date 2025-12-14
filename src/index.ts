@@ -18,7 +18,6 @@ export { StreamConfig } from './types'
 
 // Types
 export type {
-  StreamConfigOptions,
   StreamStartOptions,
   StreamUpdateOptions,
   ViewerStartOptions,
@@ -52,3 +51,4 @@ export {
 } from './utils/urls'
 
 export { retryWithBackoff, sleep } from './utils/retry'
+

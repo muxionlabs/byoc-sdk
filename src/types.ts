@@ -8,21 +8,6 @@ import { constructDataStreamUrl, constructWhipUrl, constructWhepUrl } from './ut
 // Stream Configuration Types
 // ============================================================================
 
-export interface StreamConfigOptions {
-  /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
-  gatewayUrl: string
-  /** Default pipeline name */
-  defaultPipeline?: string
-  /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
-  iceServers?: RTCIceServer[]
-  /** Custom path for WHIP endpoint (defaults to '/gateway/ai/stream/start') */
-  whipPath?: string
-  /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
-  whepPath?: string
-  /** Custom base path for data streams (defaults to '/gateway/live/video-to-video') */
-  dataPath?: string
-}
-
 export class StreamConfig {
   public readonly gatewayUrl: string
   public readonly defaultPipeline?: string
@@ -35,14 +20,62 @@ export class StreamConfig {
   private readonly whepBaseUrl: string
   private readonly dataBaseUrl: string
 
-  constructor(options: StreamConfigOptions) {
-    this.gatewayUrl = this.trimTrailingSlash(options.gatewayUrl)
-    this.defaultPipeline = options.defaultPipeline
-    this.iceServers = options.iceServers
+  constructor(
 
-    this.whipPath = this.normalizePath(options.whipPath ?? '/gateway/ai/stream/start')
-    this.whepPath = this.normalizePath(options.whepPath ?? '/mediamtx')
-    this.dataPath = this.normalizePath(options.dataPath ?? '/gateway/live/video-to-video')
+    gatewayUrlOrConfig: string | {
+      /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
+      gatewayUrl: string
+      /** Default pipeline name */
+      defaultPipeline?: string
+      /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
+      iceServers?: RTCIceServer[]
+      /** Custom path for WHIP endpoint (defaults to '/gateway/ai/stream/start') */
+      whipPath?: string
+      /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
+      whepPath?: string
+      /** Custom base path for data streams (defaults to '/gateway/') */
+      dataPath?: string
+    },
+    options?: {
+      /** Default pipeline name */
+      defaultPipeline?: string
+      /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
+      iceServers?: RTCIceServer[]
+      /** Custom path for WHIP endpoint (defaults to '/gateway/ai/stream/start') */
+      whipPath?: string
+      /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
+      whepPath?: string
+      /** Custom base path for data streams (defaults to '/gateway/') */
+      dataPath?: string
+    }
+  ) {
+    // Support multiple forms:
+    // 1. new StreamConfig('url')
+    // 2. new StreamConfig('url', { defaultPipeline: '...' })
+    // 3. new StreamConfig({ gatewayUrl: '...', defaultPipeline: '...' })
+    
+    let config: {
+      gatewayUrl: string
+      defaultPipeline?: string
+      iceServers?: RTCIceServer[]
+      whipPath?: string
+      whepPath?: string
+      dataPath?: string
+    }
+
+    if (typeof gatewayUrlOrConfig === 'string') {
+      config = { gatewayUrl: gatewayUrlOrConfig, ...options }
+    } else {
+      config = gatewayUrlOrConfig
+    }
+
+    this.gatewayUrl = this.trimTrailingSlash(config.gatewayUrl)
+    this.defaultPipeline = config.defaultPipeline
+    this.iceServers = config.iceServers
+
+    this.whipPath = this.normalizePath(config.whipPath ?? '/gateway/ai/stream/start')
+    this.whepPath = this.normalizePath(config.whepPath ?? '/mediamtx')
+    this.dataPath = this.normalizePath(config.dataPath ?? '/gateway/')
 
     this.whipBaseUrl = `${this.gatewayUrl}${this.whipPath}`
     this.whepBaseUrl = `${this.gatewayUrl}${this.whepPath}`
@@ -328,3 +361,4 @@ export interface EventEmitter<EventMap extends Record<string, any>> {
   off<K extends keyof EventMap>(event: K, callback: EventCallback<EventMap[K]>): void
   emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void
 }
+

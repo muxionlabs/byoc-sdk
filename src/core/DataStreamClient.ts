@@ -148,3 +148,4 @@ export class DataStreamClient extends EventEmitter<DataStreamEventMap> {
     this.emit('disconnected', undefined)
   }
 }
+

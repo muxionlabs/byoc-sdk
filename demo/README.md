@@ -34,9 +34,28 @@ The optimized output lands in `demo/dist/`.
 
 The demo reads a single environment variable:
 
-- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://eliteencoder.net:8088`). The app derives WHIP/WHEP/data/update paths from this value and also uses it for the `/workflows/` helper.
+- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://eliteencoder.net:8088`). The app creates a `StreamConfig` instance with this URL, which automatically derives WHIP/WHEP/data endpoint paths.
 
 Set the variable before running `npm run dev` or `npm run build` to target a different environment.
+
+**Example configuration in App.tsx:**
+```typescript
+// Simple form
+const config = new StreamConfig(BASE_URL)
+
+// With named options (recommended)
+const config = new StreamConfig(BASE_URL, {
+  defaultPipeline: 'comfystream'
+})
+
+// Object form
+const config = new StreamConfig({
+  gatewayUrl: BASE_URL,
+  defaultPipeline: 'comfystream'
+})
+```
+
+The `StreamConfig` class handles all URL construction internally, so the demo doesn't need to manually build endpoint URLs.
 
 ## Project layout
 
