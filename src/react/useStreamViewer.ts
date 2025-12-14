@@ -14,7 +14,7 @@ import {
 
 export interface UseStreamViewerOptions {
   config: StreamConfig
-  videoRef?: React.RefObject<HTMLVideoElement>
+  videoRef?: React.RefObject<HTMLVideoElement | null>
   onStatusChange?: (status: ConnectionStatus) => void
   onStatsUpdate?: (stats: ConnectionStats) => void
   onError?: (error: StreamError) => void

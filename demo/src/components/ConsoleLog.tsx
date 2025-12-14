@@ -3,7 +3,7 @@ import { LogEntry } from '../types'
 
 interface ConsoleLogProps {
   logs: LogEntry[]
-  containerRef: RefObject<HTMLDivElement>
+  containerRef: RefObject<HTMLDivElement | null>
 }
 
 export function ConsoleLog({ logs, containerRef }: ConsoleLogProps) {

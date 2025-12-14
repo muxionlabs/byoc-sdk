@@ -2,8 +2,8 @@ import { RefObject } from 'react'
 import { StatsOverlay, TextOverlay } from '../types'
 
 interface VideoPreviewProps {
-  outputVideoRef: RefObject<HTMLVideoElement>
-  previewVideoRef: RefObject<HTMLVideoElement>
+  outputVideoRef: RefObject<HTMLVideoElement | null>
+  previewVideoRef: RefObject<HTMLVideoElement | null>
   stats: StatsOverlay
   hasStats: boolean
   textOverlays: TextOverlay[]

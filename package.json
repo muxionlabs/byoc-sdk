@@ -25,7 +25,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src",
     "prepublishOnly": "npm run build",
     "demo:dev": "cd demo && npm install && npm run dev",
     "demo:build": "cd demo && npm install && npm run build",
@@ -66,13 +66,14 @@
   "devDependencies": {
     "@types/node": "^25.0.2",
     "@types/react": "^19.2.7",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
     "eslint": "^9.39.2",
     "jsdom": "^27.3.0",
     "react": "^19.2.3",
     "tsup": "^8.0.1",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.19.1",
     "vitest": "^4.0.15"
   }
 }

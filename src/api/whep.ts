@@ -40,7 +40,7 @@ export async function sendWhepOffer(
       let errorBody = ''
       try {
         errorBody = await response.text()
-      } catch (e) {
+      } catch {
         // Ignore if we can't read the body
       }
 
