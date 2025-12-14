@@ -16,10 +16,7 @@ import {
 } from '../types'
 import { EventEmitter } from '../utils/EventEmitter'
 import { 
-  generateStreamId, 
-  constructWhipUrl, 
-  constructWhepUrl, 
-  constructDataStreamUrl 
+  generateStreamId
 } from '../utils/urls'
 import { sendWhipOffer, stopStream, initializeGatewayStream } from '../api/whip'
 import { sendStreamUpdate } from '../api/stream-update'
@@ -131,7 +128,13 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       await this.waitForICEGathering(this.peerConnection)
 
       // Initialize session via gateway to get the actual WHIP URL
-      const whipUrl = constructWhipUrl(this.config.gatewayUrl)
+      const whipUrl = this.config.getWhipUrl({
+        pipeline: options.pipeline,
+        width: options.width,
+        height: options.height,
+        customParams: options.customParams,
+        streamId
+      })
       const initData = await initializeGatewayStream(whipUrl, options)
       const sessionWhipUrl = initData.whipUrl
 
@@ -148,8 +151,9 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       const gatewayStreamId = initData.streamId || streamId
       const resolvedStreamId = response.streamId || gatewayStreamId || streamId
       const resolvedPlaybackUrl = response.playbackUrl || initData.playbackUrl || null
-      const resolvedWhepUrl = initData.whepUrl || resolvedPlaybackUrl || 
-        constructWhepUrl(this.config.gatewayUrl) || null
+      const resolvedWhepUrl = initData.whepUrl
+        || (resolvedPlaybackUrl ? this.config.getWhepUrl(resolvedPlaybackUrl) : this.config.getWhepUrl())
+        || null
       const resolvedDataUrl =
         initData.dataUrl || (options.streamName ? this.buildDataUrl(options.streamName) : null)
       const resolvedStatusUrl =
@@ -197,7 +201,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       // Send stop request if we have stream info
       if (this.streamInfo.streamId) {
         // We need the base WHIP URL for the stop request
-        const whipUrl = constructWhipUrl(this.config.gatewayUrl)
+        const whipUrl = this.config.getWhipUrl()
         await stopStream(
           this.streamInfo.streamId,
           whipUrl,
@@ -445,7 +449,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
    * Build data URL from stream name
    */
   private buildDataUrl(streamName: string): string {
-    return constructDataStreamUrl(this.config.gatewayUrl, streamName)
+    return this.config.getDataUrl(streamName)
   }
 
   /**

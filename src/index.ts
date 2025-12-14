@@ -13,9 +13,12 @@ export { useStreamPublisher } from './react/useStreamPublisher'
 export { useStreamViewer } from './react/useStreamViewer'
 export { useDataStream } from './react/useDataStream'
 
+// Config
+export { StreamConfig } from './types'
+
 // Types
 export type {
-  StreamConfig,
+  StreamConfigOptions,
   StreamStartOptions,
   StreamUpdateOptions,
   ViewerStartOptions,

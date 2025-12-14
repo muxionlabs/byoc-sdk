@@ -10,18 +10,17 @@ export function generateStreamId(): string {
 }
 
 /**
- * Constructs a WHIP URL from gateway base URL
+ * Constructs a WHIP URL from a base URL that already includes the WHIP path
  */
 export function constructWhipUrl(
-  gatewayUrl: string,
+  whipBaseUrl: string,
   pipeline?: string,
   width?: number,
   height?: number,
   customParams?: Record<string, any>,
   streamId?: string
 ): string {
-  const baseUrl = `${gatewayUrl.replace(/\/$/, '')}/gateway/ai/stream/start`
-  const url = new URL(baseUrl)
+  const url = new URL(whipBaseUrl)
 
   // Add pipeline parameter
   if (pipeline && pipeline.trim()) {
@@ -53,11 +52,14 @@ export function constructWhipUrl(
 }
 
 /**
- * Constructs a WHEP URL from gateway base URL
+ * Constructs a WHEP URL from a base URL that already includes the WHEP path
  */
-export function constructWhepUrl(gatewayUrl: string, playbackUrl?: string): string {
-  const whepUrl = `${gatewayUrl.replace(/\/$/, '')}/mediamtx`
-  
+export function constructWhepUrl(
+  whepBaseUrl: string,
+  playbackUrl?: string
+): string {
+  const whepUrl = whepBaseUrl
+
   if (!playbackUrl) return whepUrl
   
   // If playbackUrl is a full URL, use it directly
@@ -77,15 +79,15 @@ export function constructWhepUrl(gatewayUrl: string, playbackUrl?: string): stri
 }
 
 /**
- * Construct data stream URL from gateway base URL
+ * Construct data stream URL from a base URL that already includes the data path
  */
 export function constructDataStreamUrl(
-  gatewayUrl: string,
+  dataBaseUrl: string,
   streamName: string,
   customDataUrl?: string
 ): string {
   if (customDataUrl) {
     return customDataUrl
   }
-  return `${gatewayUrl.replace(/\/$/, '')}/gateway/live/video-to-video/${streamName}/data`
+  return `${dataBaseUrl.replace(/\/$/, '')}/${streamName}/data`
 }

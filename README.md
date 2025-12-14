@@ -38,10 +38,10 @@ import { StreamPublisher, StreamConfig } from '@muxionlabs/byoc-sdk'
 // Define your gateway base URL
 const GATEWAY_URL = 'https://your-gateway.example.com:8088'
 
-const config: StreamConfig = {
+const config = new StreamConfig({
   gatewayUrl: GATEWAY_URL,
   defaultPipeline: 'comfystream'
-}
+})
 
 const publisher = new StreamPublisher(config)
 

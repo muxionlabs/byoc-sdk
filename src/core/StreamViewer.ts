@@ -12,7 +12,6 @@ import {
   ConnectionError
 } from '../types'
 import { EventEmitter } from '../utils/EventEmitter'
-import { constructWhepUrl } from '../utils/urls'
 import { sendWhepOffer } from '../api/whep'
 
 export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
@@ -66,8 +65,10 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
       this.setStatus('connecting')
 
       // Use WHEP URL from options or config
-      const whepBaseUrl = options.whepUrl || constructWhepUrl(this.config.gatewayUrl)
-      const whepUrl = constructWhepUrl(whepBaseUrl, options.playbackUrl)
+      const baseWhepUrl = options.whepUrl || this.config.getWhepUrl()
+      const whepUrl = options.playbackUrl
+        ? this.config.getWhepUrl(options.playbackUrl, baseWhepUrl)
+        : baseWhepUrl
 
       if (!whepUrl) {
         throw new StreamError('No WHEP URL available')

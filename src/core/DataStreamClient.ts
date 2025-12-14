@@ -10,7 +10,6 @@ import {
   DataLog
 } from '../types'
 import { EventEmitter } from '../utils/EventEmitter'
-import { constructDataStreamUrl } from '../utils/urls'
 
 export class DataStreamClient extends EventEmitter<DataStreamEventMap> {
   private config: StreamConfig
@@ -62,10 +61,7 @@ export class DataStreamClient extends EventEmitter<DataStreamEventMap> {
       }
 
       // Construct SSE URL
-      const sseUrl = options.dataUrl || constructDataStreamUrl(
-        this.config.gatewayUrl,
-        options.streamName
-      )
+      const sseUrl = options.dataUrl || this.config.getDataUrl(options.streamName)
 
       console.log(`Connecting to data stream: ${sseUrl}`)
 

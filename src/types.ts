@@ -2,17 +2,117 @@
  * Core types and interfaces for Livepeer BYOC Stream SDK
  */
 
+import { constructDataStreamUrl, constructWhipUrl, constructWhepUrl } from './utils/urls'
+
 // ============================================================================
 // Stream Configuration Types
 // ============================================================================
 
-export interface StreamConfig {
+export interface StreamConfigOptions {
   /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
   gatewayUrl: string
   /** Default pipeline name */
   defaultPipeline?: string
   /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
   iceServers?: RTCIceServer[]
+  /** Custom path for WHIP endpoint (defaults to '/gateway/ai/stream/start') */
+  whipPath?: string
+  /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
+  whepPath?: string
+  /** Custom base path for data streams (defaults to '/gateway/live/video-to-video') */
+  dataPath?: string
+}
+
+export class StreamConfig {
+  public readonly gatewayUrl: string
+  public readonly defaultPipeline?: string
+  public readonly iceServers?: RTCIceServer[]
+
+  private readonly whipPath: string
+  private readonly whepPath: string
+  private readonly dataPath: string
+  private readonly whipBaseUrl: string
+  private readonly whepBaseUrl: string
+  private readonly dataBaseUrl: string
+
+  constructor(options: StreamConfigOptions) {
+    this.gatewayUrl = this.trimTrailingSlash(options.gatewayUrl)
+    this.defaultPipeline = options.defaultPipeline
+    this.iceServers = options.iceServers
+
+    this.whipPath = this.normalizePath(options.whipPath ?? '/gateway/ai/stream/start')
+    this.whepPath = this.normalizePath(options.whepPath ?? '/mediamtx')
+    this.dataPath = this.normalizePath(options.dataPath ?? '/gateway/live/video-to-video')
+
+    this.whipBaseUrl = `${this.gatewayUrl}${this.whipPath}`
+    this.whepBaseUrl = `${this.gatewayUrl}${this.whepPath}`
+    this.dataBaseUrl = `${this.gatewayUrl}${this.dataPath}`
+  }
+
+  /**
+   * Build a WHIP URL using configured gateway and path
+   */
+  getWhipUrl(params?: {
+    pipeline?: string
+    width?: number
+    height?: number
+    customParams?: Record<string, any>
+    streamId?: string
+  }): string {
+    return constructWhipUrl(
+      this.whipBaseUrl,
+      params?.pipeline,
+      params?.width,
+      params?.height,
+      params?.customParams,
+      params?.streamId
+    )
+  }
+
+  /**
+   * Build a WHEP URL using configured gateway and path
+   */
+  getWhepUrl(playbackUrl?: string, baseUrlOverride?: string): string {
+    if (baseUrlOverride) {
+      return this.combineWhepUrl(baseUrlOverride, playbackUrl)
+    }
+    return constructWhepUrl(this.whepBaseUrl, playbackUrl)
+  }
+
+  /**
+   * Build a data URL for a given stream
+   */
+  getDataUrl(streamName: string, customDataUrl?: string): string {
+    return constructDataStreamUrl(this.dataBaseUrl, streamName, customDataUrl)
+  }
+
+  private trimTrailingSlash(url: string): string {
+    return url.replace(/\/+$/, '')
+  }
+
+  private normalizePath(path: string): string {
+    return path.startsWith('/') ? path : `/${path}`
+  }
+
+  private combineWhepUrl(baseUrl: string, playbackUrl?: string): string {
+    const base = this.trimTrailingSlash(baseUrl)
+
+    if (!playbackUrl) {
+      return base
+    }
+
+    if (playbackUrl.startsWith('http://') || playbackUrl.startsWith('https://')) {
+      return playbackUrl
+    }
+
+    try {
+      const parsedPlayback = new URL(playbackUrl, base)
+      return `${base}${parsedPlayback.pathname}`
+    } catch (error) {
+      console.warn('Failed to parse playback URL, using base WHEP URL:', error)
+      return base
+    }
+  }
 }
 
 export interface StreamStartOptions {

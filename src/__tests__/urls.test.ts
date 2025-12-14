@@ -7,8 +7,7 @@ import {
   generateStreamId,
   constructWhipUrl,
   constructWhepUrl,
-  constructDataStreamUrl,
-  constructKafkaEventsUrl
+  constructDataStreamUrl
 } from '../utils/urls'
 
 describe('URL utilities', () => {
@@ -27,18 +26,15 @@ describe('URL utilities', () => {
     it('should construct basic WHIP URL', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
-        'my-stream',
         'comfystream'
       )
 
-      expect(url).toContain('/my-stream/whip')
       expect(url).toContain('pipeline=comfystream')
     })
 
     it('should include resolution parameters', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
-        'my-stream',
         'comfystream',
         1280,
         720
@@ -52,7 +48,6 @@ describe('URL utilities', () => {
     it('should include custom parameters', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
-        'my-stream',
         'comfystream',
         undefined,
         undefined,
@@ -68,7 +63,6 @@ describe('URL utilities', () => {
     it('should include streamId if provided', () => {
       const url = constructWhipUrl(
         'https://example.com/gateway/ai/stream/start',
-        'my-stream',
         'comfystream',
         undefined,
         undefined,
@@ -96,7 +90,7 @@ describe('URL utilities', () => {
   describe('constructDataStreamUrl', () => {
     it('should construct data stream URL', () => {
       const url = constructDataStreamUrl(
-        'https://example.com/gateway',
+        'https://example.com/gateway/live/video-to-video',
         'my-stream'
       )
 
@@ -105,33 +99,7 @@ describe('URL utilities', () => {
 
     it('should use custom URL if provided', () => {
       const customUrl = 'https://custom.com/data'
-      const url = constructDataStreamUrl(
-        'https://example.com/gateway',
-        'my-stream',
-        customUrl
-      )
-
-      expect(url).toBe(customUrl)
-    })
-  })
-
-  describe('constructKafkaEventsUrl', () => {
-    it('should construct Kafka events URL', () => {
-      const url = constructKafkaEventsUrl(
-        'https://example.com/kafka/events',
-        'my-stream'
-      )
-
-      expect(url).toBe('https://example.com/kafka/events/live/my-stream/events')
-    })
-
-    it('should use custom URL if provided', () => {
-      const customUrl = 'https://custom.com/events'
-      const url = constructKafkaEventsUrl(
-        'https://example.com/kafka/events',
-        'my-stream',
-        customUrl
-      )
+      const url = constructDataStreamUrl('https://example.com/gateway/live/video-to-video', 'my-stream', customUrl)
 
       expect(url).toBe(customUrl)
     })
