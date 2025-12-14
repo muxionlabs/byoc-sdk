@@ -71,7 +71,7 @@ export async function initializeGatewayStream(
     let errorBody = ''
     try {
       errorBody = await response.text()
-    } catch (e) {
+    } catch {
       // Ignore if we can't read the body
     }
     const errorMsg = errorBody
@@ -132,7 +132,7 @@ export async function sendWhipOffer(
       let errorBody = ''
       try {
         errorBody = await response.text()
-      } catch (e) {
+      } catch {
         // Ignore if we can't read the body
       }
       
