@@ -82,7 +82,11 @@ export class StreamConfig {
   }
 
   private trimTrailingSlash(url: string): string {
-    return url.replace(/\/+$/, '')
+    let trimmed = url
+    while (trimmed.endsWith('/')) {
+      trimmed = trimmed.slice(0, -1)
+    }
+    return trimmed
   }
 
   private normalizePath(path: string): string {
