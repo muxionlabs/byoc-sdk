@@ -208,7 +208,7 @@ function App() {
     },
     onStreamStarted: (response) => {
       addLog('✅ Stream started successfully', 'success')
-      lastViewerUrlRef.current = response.whepUrl || response.playbackUrl || ''
+      lastViewerUrlRef.current = response.playbackUrl || ''
     },
     onStreamStopped: () => {
       addLog('⏹️ Stream stopped', 'info')
@@ -264,21 +264,19 @@ function App() {
       return
     }
 
-    const targetUrl = streamInfo?.whepUrl || streamInfo?.playbackUrl
-    if (!targetUrl) return
-    if (lastViewerUrlRef.current === targetUrl && isViewing) {
+    const playbackUrl = streamInfo?.playbackUrl
+    if (!playbackUrl) return
+    if (lastViewerUrlRef.current === playbackUrl && isViewing) {
       return
     }
 
-    lastViewerUrlRef.current = targetUrl
+    lastViewerUrlRef.current = playbackUrl
     startViewerWithRetry({
-      whepUrl: streamInfo?.whepUrl || undefined,
-      playbackUrl: streamInfo?.playbackUrl || undefined
+      playbackUrl: playbackUrl
     })
   }, [
     isStreaming,
     isViewing,
-    streamInfo?.whepUrl,
     streamInfo?.playbackUrl,
     startViewerWithRetry,
     stopViewing,
@@ -436,7 +434,6 @@ function App() {
           isStreaming={isStreaming}
           viewerStatus={viewerStatus}
           streamInfo={streamInfo}
-          config={demoConfig}
           combinedError={combinedError}
           streamName={streamName}
           pipeline={pipeline}
@@ -452,7 +449,7 @@ function App() {
           onUpdatePrompts={handleUpdatePrompts}
         />
 
-        <StreamInfo streamInfo={streamInfo} config={demoConfig} />
+        <StreamInfo streamInfo={streamInfo} />
         <ConsoleLog logs={logs} containerRef={logContainerRef} />
       </div>
     </div>

@@ -149,14 +149,14 @@ const config = new StreamConfig({
 config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
 // → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
 
-config.getWhepUrl(playbackUrl)
-// → https://gateway.example.com:8088/mediamtx/stream/xyz/whep
+config.getWhepUrl('/stream/abc-123/whep')  // Takes relative path from gateway
+// → https://gateway.example.com:8088/mediamtx/stream/abc-123/whep
 
 config.getDataUrl('my-stream')
 // → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
 ```
 
-Core components (`StreamPublisher`, `StreamViewer`, `DataStreamClient`) use these methods internally, so users rarely call them directly.
+**Key Design Principle**: Gateway returns relative paths (like `playbackUrl`), SDK constructs full URLs by combining with configured base URLs. Users never need to deal with full URL construction.
 
 ### Error Handling
 

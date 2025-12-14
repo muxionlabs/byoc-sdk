@@ -1,14 +1,10 @@
-import { StreamConfig, StreamStartResponse } from '@muxionlabs/byoc-sdk'
+import { StreamStartResponse } from '@muxionlabs/byoc-sdk'
 
 interface StreamInfoProps {
   streamInfo: StreamStartResponse | null
-  config: StreamConfig
 }
 
-export function StreamInfo({ streamInfo, config }: StreamInfoProps) {
-  const whepUrl = streamInfo?.whepUrl || config.getWhepUrl(streamInfo?.playbackUrl || undefined)
-  const dataUrl = streamInfo?.dataUrl || '-'
-
+export function StreamInfo({ streamInfo }: StreamInfoProps) {
   return (
     <section className="section">
       <h2>Stream Information</h2>
@@ -19,11 +15,11 @@ export function StreamInfo({ streamInfo, config }: StreamInfoProps) {
         </div>
         <div className="info-item">
           <span className="info-label">WHEP URL</span>
-          <span className="info-value">{whepUrl}</span>
+          <span className="info-value">{streamInfo?.whepUrl || '-'}</span>
         </div>
         <div className="info-item">
           <span className="info-label">Data URL</span>
-          <span className="info-value">{dataUrl}</span>
+          <span className="info-value">{streamInfo?.dataUrl || '-'}</span>
         </div>
         <div className="info-item">
           <span className="info-label">Update URL</span>

@@ -70,10 +70,7 @@ export class StreamConfig {
   /**
    * Build a WHEP URL using configured gateway and path
    */
-  getWhepUrl(playbackUrl?: string, baseUrlOverride?: string): string {
-    if (baseUrlOverride) {
-      return this.combineWhepUrl(baseUrlOverride, playbackUrl)
-    }
+  getWhepUrl(playbackUrl?: string): string {
     return constructWhepUrl(this.whepBaseUrl, playbackUrl)
   }
 
@@ -90,26 +87,6 @@ export class StreamConfig {
 
   private normalizePath(path: string): string {
     return path.startsWith('/') ? path : `/${path}`
-  }
-
-  private combineWhepUrl(baseUrl: string, playbackUrl?: string): string {
-    const base = this.trimTrailingSlash(baseUrl)
-
-    if (!playbackUrl) {
-      return base
-    }
-
-    if (playbackUrl.startsWith('http://') || playbackUrl.startsWith('https://')) {
-      return playbackUrl
-    }
-
-    try {
-      const parsedPlayback = new URL(playbackUrl, base)
-      return `${base}${parsedPlayback.pathname}`
-    } catch (error) {
-      console.warn('Failed to parse playback URL, using base WHEP URL:', error)
-      return base
-    }
   }
 }
 
@@ -154,10 +131,8 @@ export interface StreamUpdateOptions {
 }
 
 export interface ViewerStartOptions {
-  /** Playback URL (optional if using WHEP URL from stream start) */
+  /** Playback URL path from gateway (e.g., '/stream/abc-123/whep'). SDK will construct full WHEP URL. */
   playbackUrl?: string
-  /** WHEP URL override (optional, uses config if not provided) */
-  whepUrl?: string
 }
 
 // ============================================================================

@@ -85,6 +85,27 @@ describe('URL utilities', () => {
       const url = constructWhepUrl('https://example.com/mediamtx', playbackUrl)
       expect(url).toBe(playbackUrl)
     })
+
+    it('should correctly resolve relative playback URL paths', () => {
+      const whepBaseUrl = 'https://example.com/mediamtx'
+      const playbackUrl = '/stream/xyz/whep'
+      const url = constructWhepUrl(whepBaseUrl, playbackUrl)
+      expect(url).toBe('https://example.com/stream/xyz/whep')
+    })
+
+    it('should handle relative paths with base URL having trailing slash', () => {
+      const whepBaseUrl = 'https://example.com/mediamtx/'
+      const playbackUrl = '/stream/abc-123/whep'
+      const url = constructWhepUrl(whepBaseUrl, playbackUrl)
+      expect(url).toBe('https://example.com/stream/abc-123/whep')
+    })
+
+    it('should handle relative paths without leading slash', () => {
+      const whepBaseUrl = 'https://example.com/mediamtx'
+      const playbackUrl = 'stream/xyz/whep'
+      const url = constructWhepUrl(whepBaseUrl, playbackUrl)
+      expect(url).toBe('https://example.com/stream/xyz/whep')
+    })
   })
 
   describe('constructDataStreamUrl', () => {

@@ -64,11 +64,10 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
     try {
       this.setStatus('connecting')
 
-      // Use WHEP URL from options or config
-      const baseWhepUrl = options.whepUrl || this.config.getWhepUrl()
+      // Construct WHEP URL from playbackUrl (if provided) or use default
       const whepUrl = options.playbackUrl
-        ? this.config.getWhepUrl(options.playbackUrl, baseWhepUrl)
-        : baseWhepUrl
+        ? this.config.getWhepUrl(options.playbackUrl)
+        : this.config.getWhepUrl()
 
       if (!whepUrl) {
         throw new StreamError('No WHEP URL available')

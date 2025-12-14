@@ -58,9 +58,7 @@ export function constructWhepUrl(
   whepBaseUrl: string,
   playbackUrl?: string
 ): string {
-  const whepUrl = whepBaseUrl
-
-  if (!playbackUrl) return whepUrl
+  if (!playbackUrl) return whepBaseUrl
   
   // If playbackUrl is a full URL, use it directly
   if (playbackUrl.startsWith('http://') || playbackUrl.startsWith('https://')) {
@@ -68,13 +66,12 @@ export function constructWhepUrl(
   }
   
   try {
-    const playbackUrlObj = new URL(playbackUrl)
-    const pathFromPlayback = playbackUrlObj.pathname
-    // Remove trailing slash from whepUrl if present and append the path
-    return whepUrl.replace(/\/$/, '') + pathFromPlayback
+    // Use whepBaseUrl as base to resolve relative playbackUrl
+    const resolvedUrl = new URL(playbackUrl, whepBaseUrl)
+    return resolvedUrl.toString()
   } catch (error) {
-    console.warn('Failed to parse playback URL, using WHEP URL as-is:', error)
-    return whepUrl
+    console.warn('Failed to parse playback URL, using WHEP base URL:', error)
+    return whepBaseUrl
   }
 }
 
