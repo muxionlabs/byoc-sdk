@@ -45,6 +45,9 @@ export function StreamControls({
   onStop,
   onUpdatePrompts
 }: StreamControlsProps) {
+  const whepUrl = streamInfo?.whepUrl || config.getWhepUrl(streamInfo?.playbackUrl || undefined)
+  const dataUrl = streamInfo?.dataUrl || '-'
+
   return (
     <section className="section">
       <h2>Stream Controls</h2>
@@ -59,8 +62,8 @@ export function StreamControls({
         )}
         <div className="mini-info">
           <span>Stream ID: {streamInfo?.streamId || '-'}</span>
-          <span>WHEP: {streamInfo?.whepUrl || config.whepUrl}</span>
-          <span>Data: {streamInfo?.dataUrl || config.dataStreamUrl}</span>
+          <span>WHEP: {whepUrl}</span>
+          <span>Data: {dataUrl}</span>
           <span>Viewer: {viewerStatus}</span>
         </div>
       </div>

@@ -121,9 +121,8 @@ All components take a `StreamConfig` object:
 
 ```typescript
 export interface StreamConfig {
-  whipUrl: string;      // Ingest URL
-  whepUrl: string;      // Playback URL
-  dataStreamUrl: string;// SSE URL
+  gatewayUrl: string;     // Base URL of the gateway
+  defaultPipeline?: string; // Default pipeline name
   // ...
 }
 ```
@@ -172,4 +171,3 @@ To test changes in the demo app:
 3. Check error handling and cleanup (closing connections).
 
 ---
-

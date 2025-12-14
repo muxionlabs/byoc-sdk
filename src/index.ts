@@ -7,22 +7,22 @@
 export { StreamPublisher } from './core/StreamPublisher'
 export { StreamViewer } from './core/StreamViewer'
 export { DataStreamClient } from './core/DataStreamClient'
-export { EventStreamClient } from './core/EventStreamClient'
 
 // React hooks
 export { useStreamPublisher } from './react/useStreamPublisher'
 export { useStreamViewer } from './react/useStreamViewer'
 export { useDataStream } from './react/useDataStream'
-export { useEventStream } from './react/useEventStream'
+
+// Config
+export { StreamConfig } from './types'
 
 // Types
 export type {
-  StreamConfig,
+  StreamConfigOptions,
   StreamStartOptions,
   StreamUpdateOptions,
   ViewerStartOptions,
   DataStreamOptions,
-  EventStreamOptions,
   StreamStartResponse,
   WhipOfferResponse,
   WhepOfferResponse,
@@ -30,13 +30,11 @@ export type {
   ConnectionStats,
   DataLog,
   DataStreamEvent,
-  EventLog,
   MediaDevice,
   MediaDevices,
   StreamPublisherEventMap,
   StreamViewerEventMap,
-  DataStreamEventMap,
-  EventStreamEventMap
+  DataStreamEventMap
 } from './types'
 
 export {
@@ -50,9 +48,7 @@ export {
   generateStreamId,
   constructWhipUrl,
   constructWhepUrl,
-  constructDataStreamUrl,
-  constructKafkaEventsUrl
+  constructDataStreamUrl
 } from './utils/urls'
 
 export { retryWithBackoff, sleep } from './utils/retry'
-
