@@ -117,14 +117,23 @@ A full Create React App / Vite application that demonstrates:
 
 ### Configuration
 
-All components take a `StreamConfig` object:
+All components take a `StreamConfig` instance, which is created with `StreamConfigOptions`:
 
 ```typescript
-export interface StreamConfig {
-  gatewayUrl: string;     // Base URL of the gateway
-  defaultPipeline?: string; // Default pipeline name
-  // ...
-}
+// Create a StreamConfig instance
+const config = new StreamConfig({
+  gatewayUrl: 'https://gateway.example.com:8088',  // Base URL of the gateway
+  defaultPipeline: 'comfystream',  // Default pipeline name (optional)
+  // Optional configuration:
+  // iceServers?: RTCIceServer[]
+  // whipPath?: string
+  // whepPath?: string
+  // dataPath?: string
+})
+
+// Pass the config to components
+const publisher = new StreamPublisher(config)
+const viewer = new StreamViewer(config)
 ```
 
 ### Error Handling
