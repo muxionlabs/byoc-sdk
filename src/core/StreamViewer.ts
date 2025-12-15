@@ -35,7 +35,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
   /**
    * Get current connection status
    */
-  getStatus(): ConnectionStatus {
+  getConnectionStatus(): ConnectionStatus {
     return this.connectionStatus
   }
 
@@ -100,7 +100,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
       this.setStatus('error')
       const streamError = error instanceof StreamError
         ? error
-        : new ConnectionError('Failed to start viewing', error)
+        : new ConnectionError(`Failed to start viewing: ${error instanceof Error ? error.message : String(error)}`, error)
       this.emit('error', streamError)
       await this.cleanup()
       throw streamError
