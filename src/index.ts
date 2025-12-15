@@ -52,3 +52,21 @@ export {
 
 export { retryWithBackoff, sleep } from './utils/retry'
 
+// Transcription utilities
+export { TranscriptionHelper } from './utils/transcription'
+export type { TranscriptionSegment, TranscriptionData } from './utils/transcription'
+
+// Platform detection
+export {
+  detectPlatform,
+  hasEventSource,
+  hasRTCPeerConnection,
+  getPlatformCapabilities,
+  logPlatformInfo,
+  checkRequiredFeatures
+} from './utils/platform'
+
+// React UI Components (optional, only imported if React is available)
+export { TranscriptionOverlay } from './react/components/TranscriptionOverlay'
+export type { TranscriptionOverlayProps } from './react/components/TranscriptionOverlay'
+
