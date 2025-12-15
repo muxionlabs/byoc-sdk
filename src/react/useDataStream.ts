@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { DataStreamClient } from '../core/DataStreamClient'
+import { DataStreamClient } from '../core/StreamDataViewer'
 import {
   StreamConfig,
   DataStreamOptions,
