@@ -113,6 +113,7 @@ export class Stream extends EventEmitter<StreamEventMap> {
       // Initialize session via gateway to get the actual WHIP URL
       const initData = await startStream(this.config.getStreamStartUrl(), options)
       this.streamInfo = initData
+      this.config.updateFromStreamStartResponse(initData)
      
       this.setStatus('connected')
       this.startStatsMonitoring()
