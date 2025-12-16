@@ -80,7 +80,7 @@ export async function startStream(
     updateUrl: getField(data, 'update_url', 'updateUrl'),
     statusUrl: getField(data, 'status_url', 'statusUrl'),
     dataUrl: getField(data, 'data_url', 'dataUrl'),
-    
+    stopUrl: getField(data, 'stop_url', 'stopUrl'),
     streamId: getField(data, 'stream_id', 'streamId')
   }
 }
