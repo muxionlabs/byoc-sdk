@@ -5,6 +5,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Stream } from '../core/Stream'
 import { StreamConfig, StreamStartOptions, StreamStartResponse } from '../types'
+import { startStream, stopStream } from '../api/start'
+import { sendStreamUpdate } from '../api/update'
+import { fetchStreamStatus } from '../api/status'
+
+vi.mock('../api/start', () => ({
+  startStream: vi.fn(),
+  stopStream: vi.fn()
+}))
+
+vi.mock('../api/update', () => ({
+  sendStreamUpdate: vi.fn()
+}))
+
+vi.mock('../api/status', () => ({
+  fetchStreamStatus: vi.fn()
+}))
+
+vi.mock('../api/whip', () => ({
+  sendWhipOffer: vi.fn().mockResolvedValue({
+    status: 201,
+    answerSdp: 'answer-sdp',
+    locationHeader: null,
+    eTagHeader: null,
+    linkHeader: null,
+    playbackUrl: null
+  })
+}))
+
+const mockedStartStream = vi.mocked(startStream)
+const mockedStopStream = vi.mocked(stopStream)
+const mockedSendStreamUpdate = vi.mocked(sendStreamUpdate)
+const mockedFetchStreamStatus = vi.mocked(fetchStreamStatus)
 
 // Mock WebRTC and fetch
 const mockFetch = vi.fn()
@@ -15,9 +47,23 @@ const mockGetMediaDevices = vi.fn()
 describe('Stream class', () => {
   let stream: Stream
   let config: StreamConfig
+  const mockStartResponse: StreamStartResponse = {
+    whipUrl: 'whip-url',
+    whepUrl: 'whep-url',
+    rtmpUrl: 'rtmp-url',
+    rtmpOutputUrl: 'rtmp-output-url',
+    updateUrl: 'update-url',
+    statusUrl: 'status-url',
+    dataUrl: 'data-url',
+    streamId: 'stream-123'
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockedStartStream.mockResolvedValue(mockStartResponse)
+    mockedStopStream.mockResolvedValue(undefined)
+    mockedSendStreamUpdate.mockResolvedValue(undefined)
+    mockedFetchStreamStatus.mockResolvedValue({ status: 'ok' })
     global.fetch = mockFetch
     global.navigator = {
       mediaDevices: {
@@ -194,6 +240,158 @@ describe('Stream class', () => {
       stream.emit('error', error)
 
       expect(callback).toHaveBeenCalledWith(error)
+    })
+  })
+
+  describe('start', () => {
+    it('initializes the stream and stores start response', async () => {
+      const statusListener = vi.fn()
+      const startedListener = vi.fn()
+      stream.on('statusChange', statusListener)
+      stream.on('streamStarted', startedListener)
+
+      const options: StreamStartOptions = {
+        streamName: 'test-stream',
+        pipeline: 'comfystream'
+      }
+
+      await stream.start(options)
+
+      expect(mockedStartStream).toHaveBeenCalledWith(config.getStreamStartUrl(), options)
+      expect(stream.getConnectionStatus()).toBe('connected')
+      expect(stream.getStreamInfo()).toEqual(mockStartResponse)
+      expect(startedListener).toHaveBeenCalledWith(mockStartResponse)
+      expect(statusListener).toHaveBeenCalledWith('connected')
+
+      await stream.stop()
+    })
+
+    it('throws when starting while already active', async () => {
+      const options: StreamStartOptions = {
+        streamName: 'dup-stream',
+        pipeline: 'comfystream'
+      }
+
+      await stream.start(options)
+      await expect(stream.start(options)).rejects.toThrow('Stream is already active. Stop the current stream first.')
+      await stream.stop()
+    })
+
+    it('emits error and cleans up on failure', async () => {
+      const errorListener = vi.fn()
+      stream.on('error', errorListener)
+      mockedStartStream.mockRejectedValueOnce(new Error('boom'))
+
+      await expect(stream.start({ streamName: 'fail', pipeline: 'pipe' }))
+        .rejects.toThrow('Failed to start stream')
+
+      expect(errorListener).toHaveBeenCalled()
+      expect(stream.getConnectionStatus()).toBe('disconnected')
+    })
+  })
+
+  describe('update', () => {
+    it('strips immutable fields and sends update', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      await stream.update({
+        params: {
+          width: 1920,
+          height: 1080,
+          prompts: 'keep-me'
+        }
+      })
+
+      expect(mockedSendStreamUpdate).toHaveBeenCalledWith(
+        'update-url',
+        'stream-123',
+        'comfystream',
+        { prompts: 'keep-me' }
+      )
+      expect(warnSpy).toHaveBeenCalled()
+      warnSpy.mockRestore()
+    })
+
+    it('throws when only immutable params are provided', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+
+      await expect(
+        stream.update({
+          params: {
+            width: 1920,
+            height: 1080
+          }
+        })
+      ).rejects.toThrow('No mutable parameters provided for update. Restart the stream to change resolution.')
+    })
+
+    it('errors when no pipeline configured', async () => {
+      const noPipelineStream = new Stream(
+        new StreamConfig({
+          gatewayUrl: 'https://example.com'
+        })
+      )
+      ;(noPipelineStream as any).streamInfo = { ...mockStartResponse }
+
+      await expect(
+        noPipelineStream.update({
+          params: {
+            prompts: 'hello'
+          }
+        })
+      ).rejects.toThrow(
+        'No pipeline configured for update. Provide config.defaultPipeline or include a pipeline when starting the stream.'
+      )
+    })
+  })
+
+  describe('status', () => {
+    it('throws when no active stream exists', async () => {
+      await expect(stream.status()).rejects.toThrow('No active stream to get status for')
+    })
+
+    it('fetches status when stream info is available', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      mockedFetchStreamStatus.mockResolvedValueOnce({ connection: 'ok' })
+
+      const status = await stream.status()
+
+      expect(mockedFetchStreamStatus).toHaveBeenCalledWith('status-url')
+      expect(status).toEqual({ connection: 'ok' })
+    })
+
+    it('emits error when status fetch fails', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      const errorListener = vi.fn()
+      stream.on('error', errorListener)
+      mockedFetchStreamStatus.mockRejectedValueOnce(new Error('status failure'))
+
+      await expect(stream.status()).rejects.toThrow('Failed to fetch stream status')
+      expect(errorListener).toHaveBeenCalled()
+    })
+  })
+
+  describe('stop', () => {
+    it('no-ops when there is no active stream', async () => {
+      await stream.stop()
+      expect(mockedStopStream).not.toHaveBeenCalled()
+    })
+
+    it('sends stop request and cleans up when active', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      const stoppedListener = vi.fn()
+      stream.on('streamStopped', stoppedListener)
+
+      await stream.stop()
+
+      expect(mockedStopStream).toHaveBeenCalledWith(
+        config.getStreamStopUrl(),
+        'stream-123',
+        'comfystream'
+      )
+      expect(stream.getConnectionStatus()).toBe('disconnected')
+      expect(stoppedListener).toHaveBeenCalled()
     })
   })
 })
