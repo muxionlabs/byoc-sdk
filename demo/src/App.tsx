@@ -222,7 +222,7 @@ function App() {
     },
     onError: (err) => {
       setErrorBanner(err.message)
-      addLog(`❌ Publisher error: ${err.message}`, 'error')
+      addLog(`❌ Stream error: ${err.message}`, 'error')
     }
   })
 

@@ -1,5 +1,5 @@
 /**
- * React hook for StreamPublisher
+ * React hook for Stream
  */
 
 import { useState, useEffect, useCallback } from 'react'

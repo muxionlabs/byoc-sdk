@@ -147,7 +147,7 @@ describe('StreamViewer class', () => {
       }
 
       await expect(viewer.start(options))
-        .rejects.toThrow('No WHEP URL provided. Pass the whepUrl from StreamPublisher.getStreamInfo()')
+        .rejects.toThrow('No WHEP URL provided. Pass the whepUrl from Stream.getStreamInfo()')
     })
 
     it('should handle HTTP errors', async () => {
