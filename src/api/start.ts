@@ -89,17 +89,12 @@ export async function startStream(
 /**
  * Sends a stop stream request
  */
-export async function stopStream(
-  stopUrl: string,
-): Promise<boolean> {
+export async function stopStream(stopUrl: string): Promise<boolean> {
   try {
-    console.log(`Stopping stream: ${stopUrl}`)
+    console.log(`Stopping stream using stopUrl: ${stopUrl}`)
 
     const response = await fetch(stopUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      method: 'POST'
     })
 
     if (response.ok) {

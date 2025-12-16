@@ -260,10 +260,9 @@ export class Stream extends EventEmitter<StreamEventMap> {
 
     try {
       // Send stop request if we have stream info
-      if (this.streamInfo.streamId) {
-        await stopStream(
-          this.config.getStreamStopUrl()
-        )
+      const stopUrl = this.config.getStreamStopUrl()
+      if (stopUrl) {
+        await stopStream(stopUrl)
       }
 
       await this.cleanup()

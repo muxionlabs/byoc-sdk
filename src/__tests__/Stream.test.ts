@@ -450,6 +450,7 @@ describe('Stream class', () => {
 
     it('sends stop request and cleans up when active', async () => {
       ;(stream as any).streamInfo = { ...mockStartResponse }
+      config.updateFromStreamStartResponse(mockStartResponse as any)
       const stoppedListener = vi.fn()
       stream.on('streamStopped', stoppedListener)
 
