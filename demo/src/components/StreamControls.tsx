@@ -4,7 +4,7 @@ import { SavedWorkflow } from '../types'
 
 interface StreamControlsProps {
   badgeClass: string
-  publisherStatus: string
+  streamStatus: string
   isStreaming: boolean
   viewerStatus: string
   streamInfo: StreamStartResponse | null
@@ -25,7 +25,7 @@ interface StreamControlsProps {
 
 export function StreamControls({
   badgeClass,
-  publisherStatus,
+  streamStatus,
   isStreaming,
   viewerStatus,
   streamInfo,
@@ -48,7 +48,7 @@ export function StreamControls({
       <h2>Stream Controls</h2>
 
       <div className="status-bar">
-        <span className={badgeClass}>{publisherStatus.toUpperCase()}</span>
+        <span className={badgeClass}>{streamStatus.toUpperCase()}</span>
         {isStreaming && (
           <span className="live-indicator">
             <span className="live-dot" />

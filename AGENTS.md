@@ -155,6 +155,11 @@ config.getStatusUrl('stream-123')
 
 config.getDataUrl('my-stream')
 // → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
+
+// startStream now returns stopUrl; StreamConfig surfaces it via getStreamStopUrl()
+config.updateFromStreamStartResponse(startResponse)
+config.getStreamStopUrl()
+// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/stop
 ```
 
 **Key Design Principle**: Gateway returns full URLs for data-plane endpoints (like `whepUrl`). The SDK uses these directly without additional construction. Control-plane URLs (status, update, stop) are derived from the gateway base URL using StreamConfig helpers.

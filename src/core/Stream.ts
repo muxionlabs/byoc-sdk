@@ -7,7 +7,7 @@ import {
   StreamStartOptions,
   StreamUpdateOptions,
   StreamStartResponse,
-  StreamPublisherEventMap,
+  StreamEventMap,
   ConnectionStatus,
   ConnectionStats,
   StreamError,
@@ -15,13 +15,13 @@ import {
   ConnectionError
 } from '../types'
 import { EventEmitter } from '../utils/EventEmitter'
-import { 
-  generateStreamId
-} from '../utils/urls'
-import { sendWhipOffer, stopStream, initializeGatewayStream } from '../api/whip'
-import { sendStreamUpdate } from '../api/stream-update'
 
-export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
+import { startStream, stopStream } from '../api/start'
+import { sendWhipOffer,  } from '../api/whip'
+import { sendStreamUpdate } from '../api/update'
+import { fetchStreamStatus } from '../api/status'
+
+export class Stream extends EventEmitter<StreamEventMap> {
   private config: StreamConfig
   private peerConnection: RTCPeerConnection | null = null
   private localStream: MediaStream | null = null
@@ -39,12 +39,14 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
   constructor(config: StreamConfig) {
     super()
     this.config = config
+    // Initialize streamInfo from provided config if available
+    this.streamInfo = config.streamStartResponse ?? null
   }
 
   /**
-   * Get current connection status
+   * Get current stream connection status
    */
-  getStatus(): ConnectionStatus {
+  getConnectionStatus(): ConnectionStatus {
     return this.connectionStatus
   }
 
@@ -52,7 +54,7 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
    * Get stream information
    */
   getStreamInfo(): StreamStartResponse | null {
-    return this.streamInfo
+    return this.streamInfo ?? this.config.streamStartResponse
   }
 
   /**
@@ -83,9 +85,10 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
    */
   async requestPermissions(video: boolean = true, audio: boolean = true): Promise<void> {
     try {
-      const constraints: MediaStreamConstraints = {}
-      if (video) constraints.video = true
-      if (audio) constraints.audio = true
+      const constraints: MediaStreamConstraints = {
+        video: !!video,
+        audio: !!audio
+      }
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       // Stop the temporary stream immediately
@@ -106,16 +109,39 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
     try {
       this.setStatus('connecting')
       this.currentPipeline = options.pipeline
+      
+      // Initialize session via gateway to get the actual WHIP URL
+      const initData = await startStream(this.config.getStreamStartUrl(), options)
+      this.streamInfo = initData
+      this.config.updateFromStreamStartResponse(initData)
+     
+      this.setStatus('connected')
+      this.startStatsMonitoring()
+      this.emit('streamStarted', initData)
+      
+      return initData
+    } catch (error) {
+      this.setStatus('error')
+      const streamError = error instanceof StreamError
+        ? error
+        : new ConnectionError('Failed to start stream', error)
+      this.emit('error', streamError)
+      await this.cleanup()
+      throw streamError
+    }
+  }
 
-      // Generate stream ID if not provided
-      const streamId = options.streamId || generateStreamId()
-
+  /**
+   * Create WHIP connection and return stream start response
+   */
+  async publish(options: StreamStartOptions): Promise<boolean> {     
+    try {
       // Get media stream
       this.localStream = await this.getMediaStream(options)
       this.emit('mediaStreamReady', this.localStream)
 
       // Create peer connection
-      this.peerConnection = await this.createPeerConnection(this.localStream)
+      this.peerConnection = await this.createPeerConnection(this.localStream!)
 
       // Create and send WHIP offer
       const offer = await this.peerConnection.createOffer({
@@ -127,19 +153,8 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
       // Wait for ICE gathering
       await this.waitForICEGathering(this.peerConnection)
 
-      // Initialize session via gateway to get the actual WHIP URL
-      const whipUrl = this.config.getWhipUrl({
-        pipeline: options.pipeline,
-        width: options.width,
-        height: options.height,
-        customParams: options.customParams,
-        streamId
-      })
-      const initData = await initializeGatewayStream(whipUrl, options)
-      const sessionWhipUrl = initData.whipUrl
-
       // Send WHIP offer to the URL returned by the gateway
-      const response = await sendWhipOffer(sessionWhipUrl, this.peerConnection.localDescription!.sdp)
+      const response = await sendWhipOffer(this.config.getWhipUrl(), this.peerConnection.localDescription!.sdp)
 
       // Set remote description
       await this.peerConnection.setRemoteDescription({
@@ -147,79 +162,46 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
         sdp: response.answerSdp
       })
 
-      // Build stream info
-      const gatewayStreamId = initData.streamId || streamId
-      const resolvedStreamId = response.streamId || gatewayStreamId || streamId
-      const resolvedPlaybackUrl = response.playbackUrl || initData.playbackUrl || null
-      // Use whepUrl directly from gateway - it should return the full URL
-      const resolvedWhepUrl = initData.whepUrl || null
-      const resolvedDataUrl =
-        initData.dataUrl || (options.streamName ? this.config.getDataUrl(options.streamName) : null)
-      const resolvedStatusUrl =
-        initData.statusUrl || (resolvedStreamId ? this.config.getStatusUrl(resolvedStreamId) : null)
-      const resolvedUpdateUrl =
-        initData.updateUrl || (resolvedStreamId ? this.config.getUpdateUrl(resolvedStreamId) : null)
-      const resolvedRtmpUrl = initData.rtmpUrl || null
+      this.config.location = response.locationHeader || ""
+      this.config.eTag = response.eTagHeader || ""
+      this.config.link = response.linkHeader || ""
+      this.config.playbackUrl = response.playbackUrl || ""
 
-      this.streamInfo = {
-        streamId: resolvedStreamId,
-        playbackUrl: resolvedPlaybackUrl,
-        whepUrl: resolvedWhepUrl,
-        dataUrl: resolvedDataUrl,
-        statusUrl: resolvedStatusUrl,
-        updateUrl: resolvedUpdateUrl,
-        rtmpUrl: resolvedRtmpUrl,
-        locationHeader: response.locationHeader
-      }
-
-      this.setStatus('connected')
-      this.startStatsMonitoring()
-      this.emit('streamStarted', this.streamInfo)
-
-      return this.streamInfo
+      return response.status === 201
     } catch (error) {
       this.setStatus('error')
-      const streamError = error instanceof StreamError 
-        ? error 
-        : new ConnectionError('Failed to start stream', error)
+      const streamError = error instanceof StreamError
+        ? error
+        : new ConnectionError('Failed to publish stream', error)
       this.emit('error', streamError)
       await this.cleanup()
       throw streamError
     }
   }
 
-  /**
-   * Stop publishing
-   */
-  async stop(): Promise<void> {
+  async status(): Promise<any> {
     if (!this.streamInfo) {
-      return
+      throw new StreamError('No active stream to get status for')
     }
 
     try {
-      // Send stop request if we have stream info
-      if (this.streamInfo.streamId) {
-        const stopUrl = this.config.getStopUrl(this.streamInfo.streamId)
-        await stopStream(
-          stopUrl,
-          this.streamInfo.streamId,
-          this.resolveActivePipeline('stop')
-        )
-      }
-
-      await this.cleanup()
-      this.emit('streamStopped', undefined)
+      const statusData = await fetchStreamStatus(
+        this.streamInfo.statusUrl
+      )
+      return statusData
     } catch (error) {
-      console.error('Error stopping stream:', error)
-      await this.cleanup()
-      throw error
+      const streamError = error instanceof StreamError
+        ? error
+        : new StreamError('Failed to fetch stream status', undefined, error)
+      this.emit('error', streamError)
+      throw streamError
     }
   }
-
+  
   /**
    * Update stream parameters
    */
-  async updateStream(options: StreamUpdateOptions): Promise<void> {
+  async update(options: StreamUpdateOptions): Promise<void> {
     if (!this.streamInfo || !this.streamInfo.updateUrl || !this.streamInfo.streamId) {
       throw new StreamError('No active stream to update')
     }
@@ -265,6 +247,31 @@ export class StreamPublisher extends EventEmitter<StreamPublisherEventMap> {
         : new StreamError('Failed to update stream', undefined, error)
       this.emit('error', streamError)
       throw streamError
+    }
+  }
+
+
+  /**
+   * Stop stream
+   */
+  async stop(): Promise<void> {
+    if (!this.streamInfo) {
+      return
+    }
+
+    try {
+      // Send stop request if we have stream info
+      const stopUrl = this.config.getStreamStopUrl()
+      if (stopUrl) {
+        await stopStream(stopUrl)
+      }
+
+      await this.cleanup()
+      this.emit('streamStopped', undefined)
+    } catch (error) {
+      console.error('Error stopping stream:', error)
+      await this.cleanup()
+      throw error
     }
   }
 

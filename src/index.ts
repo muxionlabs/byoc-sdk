@@ -4,12 +4,12 @@
  */
 
 // Core classes
-export { StreamPublisher } from './core/StreamPublisher'
+export { Stream } from './core/Stream'
 export { StreamViewer } from './core/StreamViewer'
-export { DataStreamClient } from './core/DataStreamClient'
+export { DataStreamClient } from './core/StreamDataViewer'
 
 // React hooks
-export { useStreamPublisher } from './react/useStreamPublisher'
+export { useStream } from './react/useStream'
 export { useStreamViewer } from './react/useStreamViewer'
 export { useDataStream } from './react/useDataStream'
 
@@ -31,7 +31,7 @@ export type {
   DataStreamEvent,
   MediaDevice,
   MediaDevices,
-  StreamPublisherEventMap,
+  StreamEventMap,
   StreamViewerEventMap,
   DataStreamEventMap
 } from './types'
@@ -41,14 +41,6 @@ export {
   ConnectionError,
   MediaError
 } from './types'
-
-// Utilities
-export {
-  generateStreamId,
-  constructWhipUrl,
-  constructWhepUrl,
-  constructDataStreamUrl
-} from './utils/urls'
 
 export { retryWithBackoff, sleep } from './utils/retry'
 

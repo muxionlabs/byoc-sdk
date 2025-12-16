@@ -9,7 +9,7 @@ This Vite + React demo mirrors the plain HTML example in `examples/html-demo.htm
 - **Single-page publisher + viewer** – start WHIP ingest and automatically play the processed WHEP output in one layout.
 - **Prompt management** – reuse saved workflows from `/workflows/`, edit prompts inline, and send live prompt updates that respect the SDK’s immutable resolution rules.
 - **Live stats & logs** – bitrate/FPS overlays, connection badges, and a console-style log that mirrors the reference HTML sample.
-- **SDK-first usage** – demonstrates `useStreamPublisher`/`useStreamViewer` along with the latest update URL handling fixes.
+- **SDK-first usage** – demonstrates `useStream`/`useStreamViewer` along with the latest update URL handling fixes.
 - **Shared styling** – both this app and `examples/html-demo.html` import `examples/simple-demo.css`, so UI tweaks only need to be done once.
 
 ## Running locally
@@ -34,7 +34,7 @@ The optimized output lands in `demo/dist/`.
 
 The demo reads a single environment variable:
 
-- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://eliteencoder.net:8088`). The app creates a `StreamConfig` instance with this URL, which automatically derives WHIP/WHEP/data endpoint paths.
+- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://localhost:8088`). The app creates a `StreamConfig` instance with this URL, which automatically derives WHIP/WHEP/data endpoint paths.
 
 Set the variable before running `npm run dev` or `npm run build` to target a different environment.
 

@@ -2,8 +2,6 @@
  * Core types and interfaces for Livepeer BYOC Stream SDK
  */
 
-import { constructDataStreamUrl, constructWhipUrl, constructWhepUrl } from './utils/urls'
-
 // ============================================================================
 // Stream Configuration Types
 // ============================================================================
@@ -13,14 +11,13 @@ export class StreamConfig {
   public readonly defaultPipeline?: string
   public readonly iceServers?: RTCIceServer[]
 
-  private readonly whipPath: string
-  private readonly whepPath: string
-  private readonly dataPath: string
-  private readonly whipBaseUrl: string
-  private readonly whepBaseUrl: string
-  private readonly dataBaseUrl: string
-  private readonly streamBasePath: string
-  private readonly streamBaseUrl: string
+  public location: string | "" = ""
+  public playbackUrl: string | "" = ""
+  public link: string | "" = ""
+  public eTag: string | "" = ""
+
+  // URLs from stream start response  
+  public streamStartResponse: StreamStartResponse | null = null
 
   constructor(config: {
     /** Base URL of the gateway (e.g., 'https://gateway.example.com:8088') */
@@ -29,83 +26,94 @@ export class StreamConfig {
     defaultPipeline?: string
     /** ICE servers for WebRTC connection (optional, uses defaults if not provided) */
     iceServers?: RTCIceServer[]
-    /** Custom path for WHIP endpoint (defaults to '/gateway/ai/stream/start') */
-    whipPath?: string
-    /** Custom path for WHEP endpoint (defaults to '/mediamtx') */
-    whepPath?: string
-    /** Custom base path for data streams (defaults to '/gateway/ai/stream/') */
-    dataPath?: string
   }) {
     this.gatewayUrl = this.trimTrailingSlash(config.gatewayUrl)
     this.defaultPipeline = config.defaultPipeline
     this.iceServers = config.iceServers
 
-    this.whipPath = this.normalizePath(config.whipPath ?? '/gateway/ai/stream/start')
-    this.whepPath = this.normalizePath(config.whepPath ?? '/mediamtx')
-    this.dataPath = this.normalizePath(config.dataPath ?? '/gateway/ai/stream/')
-
-    this.streamBasePath = this.deriveStreamBasePath(this.whipPath)
-    this.whipBaseUrl = `${this.gatewayUrl}${this.whipPath}`
-    this.whepBaseUrl = `${this.gatewayUrl}${this.whepPath}`
-    this.dataBaseUrl = `${this.gatewayUrl}${this.dataPath}`
-    this.streamBaseUrl = `${this.gatewayUrl}${this.streamBasePath}`
+    this.location = ""
+    this.playbackUrl = ""
+    this.link = ""
+    this.eTag = ""
   }
 
   /**
-   * Build a WHIP URL using configured gateway and path
+   * Update the config with stream start response data
    */
-  getWhipUrl(params?: {
-    pipeline?: string
-    width?: number
-    height?: number
-    customParams?: Record<string, any>
-    streamId?: string
-  }): string {
-    return constructWhipUrl(
-      this.whipBaseUrl,
-      params?.pipeline,
-      params?.width,
-      params?.height,
-      params?.customParams,
-      params?.streamId
-    )
+  updateFromStreamStartResponse(response: StreamStartResponse): void {
+    this.streamStartResponse = response
   }
 
   /**
-   * Build a WHEP URL using configured gateway and path
+   * Get Stream Start URL
    */
-  getWhepUrl(playbackUrl?: string): string {
-    return constructWhepUrl(this.whepBaseUrl, playbackUrl)
+  getStreamStartUrl(): string | "" {
+    return this.gatewayUrl + `/gateway/ai/stream/start`
+  }
+
+
+  /**
+   * Get Stream Stop URL
+   */
+  getStreamStopUrl(): string | "" {
+    return this.streamStartResponse?.stopUrl ?? ""
   }
 
   /**
-   * Build a data URL for a given stream
+   * Get WHIP URL from stream start response
    */
-  getDataUrl(streamName: string, customDataUrl?: string): string {
-    return constructDataStreamUrl(this.dataBaseUrl, streamName, customDataUrl)
+  getWhipUrl(): string | "" {
+    return this.streamStartResponse?.whipUrl ?? ""
   }
 
   /**
-   * Build a status URL for a given stream ID
+   * Get WHEP URL from stream start response
    */
-  getStatusUrl(streamId: string): string {
-    return `${this.streamBaseUrl}/${streamId}/status`
+  getWhepUrl(): string | "" {
+    return this.streamStartResponse?.whepUrl ?? ""
   }
 
   /**
-   * Build an update URL for a given stream ID
+   * Get data URL from stream start response
    */
-  getUpdateUrl(streamId: string): string {
-    return `${this.streamBaseUrl}/${streamId}/update`
+  getDataUrl(): string | "" {
+    return this.streamStartResponse?.dataUrl ?? ""
   }
 
   /**
-   * Build a stop URL for a given stream ID
+   * Get status URL from stream start response
    */
-  getStopUrl(streamId: string): string {
-    return `${this.streamBaseUrl}/${streamId}/stop`
+  getStatusUrl(): string | "" {
+    return this.streamStartResponse?.statusUrl ?? ""
   }
 
+  /**
+   * Get update URL from stream start response
+   */
+  getUpdateUrl(): string | "" {
+    return this.streamStartResponse?.updateUrl ?? ""
+  }
+
+  /**
+   * Get RTMP URL from stream start response
+   */
+  getRtmpUrl(): string | "" {
+    return this.streamStartResponse?.rtmpUrl ?? ""
+  }
+
+  /**
+   * Get RTMP output URL from stream start response
+   */
+  getRtmpOutputUrl(): string | "" {
+    return this.streamStartResponse?.rtmpOutputUrl ?? ""
+  }
+
+  /**
+   * Generate a unique stream ID
+   */
+  generateStreamId(): string {
+    return `stream-${Math.random().toString(36).substring(2, 8)}-${Date.now().toString(36)}`
+  }
   /**
    * Remove all trailing slashes from a URL
    * @private
@@ -116,25 +124,6 @@ export class StreamConfig {
       trimmed = trimmed.slice(0, -1)
     }
     return trimmed
-  }
-
-  /**
-   * Ensure path starts with a leading slash
-   * @private
-   */
-  private normalizePath(path: string): string {
-    return path.startsWith('/') ? path : `/${path}`
-  }
-
-  /**
-   * Derive the base stream path from WHIP path by removing '/start' suffix
-   * Example: '/gateway/ai/stream/start' -> '/gateway/ai/stream'
-   * Used to construct status, update, and stop URLs
-   * @private
-   */
-  private deriveStreamBasePath(whipPath: string): string {
-    const withoutStart = whipPath.replace(/\/start\/?$/, '')
-    return this.normalizePath(withoutStart.replace(/\/$/, ''))
   }
 }
 
@@ -172,7 +161,6 @@ export interface StreamStartOptions {
   /** Use screen share instead of camera */
   useScreenShare?: boolean
 }
-
 export interface StreamUpdateOptions {
   /** Custom parameters to update (width/height require restarting the stream) */
   params: Record<string, any>
@@ -190,28 +178,31 @@ export interface ViewerStartOptions {
 export interface StreamStartResponse {
   /** Stream ID assigned by the server */
   streamId: string
-  /** Playback URL for viewing the stream */
-  playbackUrl: string | null
+  /** WHIP URL for WebRTC publishing */
+  whipUrl: string
   /** WHEP URL for WebRTC viewing */
-  whepUrl: string | null
-  /** Data stream URL for SSE */
-  dataUrl: string | null
-  /** Status URL for polling stream status */
-  statusUrl: string | null
+  whepUrl: string
+  /** RTMP URL for RTMP streaming */
+  rtmpUrl: string
+  /** RTMP output URL for RTMP streaming */
+  rtmpOutputUrl: string
   /** Update URL for sending parameter updates */
-  updateUrl: string | null
-  /** RTMP URL for RTMP streaming (if applicable) */
-  rtmpUrl: string | null
-  /** Location header from WHIP response */
-  locationHeader: string | null
+  updateUrl: string
+  /** Status URL for polling stream status */
+  statusUrl: string
+  /** Data stream URL for SSE */
+  dataUrl: string
+  /** Stop stream url  */
+  stopUrl: string
 }
 
 export interface WhipOfferResponse {
   status: number
   answerSdp: string
-  streamId: string | null
-  playbackUrl: string | null
   locationHeader: string | null
+  eTagHeader: string | null
+  linkHeader: string | null
+  playbackUrl: string | null
 }
 
 export interface WhepOfferResponse {
@@ -312,7 +303,7 @@ export class MediaError extends StreamError {
 // Event Types
 // ============================================================================
 
-export type StreamPublisherEventMap = {
+export type StreamEventMap = {
   statusChange: ConnectionStatus
   statsUpdate: ConnectionStats
   error: StreamError

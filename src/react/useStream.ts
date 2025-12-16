@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { StreamPublisher } from '../core/StreamPublisher'
+import { Stream } from '../core/Stream'
 import {
   StreamConfig,
   StreamStartOptions,
@@ -14,7 +14,7 @@ import {
   StreamError
 } from '../types'
 
-export interface UseStreamPublisherOptions {
+export interface UseStreamOptions {
   config: StreamConfig
   onStatusChange?: (status: ConnectionStatus) => void
   onStatsUpdate?: (stats: ConnectionStats) => void
@@ -23,26 +23,27 @@ export interface UseStreamPublisherOptions {
   onStreamStopped?: () => void
 }
 
-export interface UseStreamPublisherReturn {
-  publisher: StreamPublisher | null
+export interface UseStreamReturn {
+  stream: Stream | null
   isStreaming: boolean
-  status: ConnectionStatus
-  stats: ConnectionStats | null
+  connectionStatus: ConnectionStatus
+  connectionStats: ConnectionStats | null
   streamInfo: StreamStartResponse | null
   localStream: MediaStream | null
   error: StreamError | null
   start: (options: StreamStartOptions) => Promise<StreamStartResponse | undefined>
   stop: () => Promise<void>
-  updateStream: (options: StreamUpdateOptions) => Promise<void>
+  status: () => Promise<any>
+  update: (options: StreamUpdateOptions) => Promise<void>
   getMediaDevices: () => Promise<any>
   requestPermissions: (video?: boolean, audio?: boolean) => Promise<void>
 }
 
-export function useStreamPublisher(options: UseStreamPublisherOptions): UseStreamPublisherReturn {
-  const [publisher] = useState(() => new StreamPublisher(options.config))
+export function useStream(options: UseStreamOptions): UseStreamReturn {
+  const [stream] = useState(() => new Stream(options.config))
   const [isStreaming, setIsStreaming] = useState(false)
-  const [status, setStatus] = useState<ConnectionStatus>('disconnected')
-  const [stats, setStats] = useState<ConnectionStats | null>(null)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected')
+  const [connectionStats, setConnectionStats] = useState<ConnectionStats | null>(null)
   const [streamInfo, setStreamInfo] = useState<StreamStartResponse | null>(null)
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [error, setError] = useState<StreamError | null>(null)
@@ -50,13 +51,13 @@ export function useStreamPublisher(options: UseStreamPublisherOptions): UseStrea
   // Setup event listeners
   useEffect(() => {
     const handleStatusChange = (newStatus: ConnectionStatus) => {
-      setStatus(newStatus)
+      setConnectionStatus(newStatus)
       setIsStreaming(newStatus === 'connected')
       options.onStatusChange?.(newStatus)
     }
 
     const handleStatsUpdate = (newStats: ConnectionStats) => {
-      setStats(newStats)
+      setConnectionStats(newStats)
       options.onStatsUpdate?.(newStats)
     }
 
@@ -80,83 +81,95 @@ export function useStreamPublisher(options: UseStreamPublisherOptions): UseStrea
       options.onStreamStopped?.()
     }
 
-    publisher.on('statusChange', handleStatusChange)
-    publisher.on('statsUpdate', handleStatsUpdate)
-    publisher.on('error', handleError)
-    publisher.on('mediaStreamReady', handleMediaStreamReady)
-    publisher.on('streamStarted', handleStreamStarted)
-    publisher.on('streamStopped', handleStreamStopped)
+    stream.on('statusChange', handleStatusChange)
+    stream.on('statsUpdate', handleStatsUpdate)
+    stream.on('error', handleError)
+    stream.on('mediaStreamReady', handleMediaStreamReady)
+    stream.on('streamStarted', handleStreamStarted)
+    stream.on('streamStopped', handleStreamStopped)
 
     return () => {
-      publisher.off('statusChange', handleStatusChange)
-      publisher.off('statsUpdate', handleStatsUpdate)
-      publisher.off('error', handleError)
-      publisher.off('mediaStreamReady', handleMediaStreamReady)
-      publisher.off('streamStarted', handleStreamStarted)
-      publisher.off('streamStopped', handleStreamStopped)
+      stream.off('statusChange', handleStatusChange)
+      stream.off('statsUpdate', handleStatsUpdate)
+      stream.off('error', handleError)
+      stream.off('mediaStreamReady', handleMediaStreamReady)
+      stream.off('streamStarted', handleStreamStarted)
+      stream.off('streamStopped', handleStreamStopped)
     }
-  }, [publisher, options])
+  }, [stream, options])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      publisher.stop().catch(console.error)
+      stream.stop().catch(console.error)
     }
-  }, [publisher])
+  }, [stream])
 
   const start = useCallback(async (startOptions: StreamStartOptions) => {
     try {
       setError(null)
-      const response = await publisher.start(startOptions)
+      const response = await stream.start(startOptions)
       return response
     } catch (err) {
       const streamError = err instanceof StreamError ? err : new StreamError(String(err))
       setError(streamError)
       throw streamError
     }
-  }, [publisher])
+  }, [stream])
+
+  const status = useCallback(async () => {
+    try {
+      setError(null)
+      const response = await stream.status()
+      return response
+    } catch (err) {
+      const streamError = err instanceof StreamError ? err : new StreamError(String(err))
+      setError(streamError)
+      throw streamError
+    }
+  }, [stream])
 
   const stop = useCallback(async () => {
     try {
       setError(null)
-      await publisher.stop()
+      await stream.stop()
     } catch (err) {
       const streamError = err instanceof StreamError ? err : new StreamError(String(err))
       setError(streamError)
       throw streamError
     }
-  }, [publisher])
+  }, [stream])
 
-  const updateStream = useCallback(async (updateOptions: StreamUpdateOptions) => {
+  const update = useCallback(async (updateOptions: StreamUpdateOptions) => {
     try {
       setError(null)
-      await publisher.updateStream(updateOptions)
+      await stream.update(updateOptions)
     } catch (err) {
       const streamError = err instanceof StreamError ? err : new StreamError(String(err))
       setError(streamError)
       throw streamError
     }
-  }, [publisher])
+  }, [stream])
 
   const getMediaDevices = useCallback(async () => {
-    return await publisher.getMediaDevices()
-  }, [publisher])
-
+    return await stream.getMediaDevices()
+  }, [stream])
   const requestPermissions = useCallback(async (video?: boolean, audio?: boolean) => {
-    return await publisher.requestPermissions(video, audio)
-  }, [publisher])
+    return await stream.requestPermissions(video, audio)
+  }, [stream])
 
   return {
-    publisher,
+    stream,
     isStreaming,
-    status,
-    stats,
+    connectionStatus,
+    connectionStats,
     streamInfo,
     localStream,
     error,
     start,
+    status,
     stop,
-    updateStream,
+    update,
     getMediaDevices,
     requestPermissions
   }

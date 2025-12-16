@@ -17,7 +17,14 @@ export async function fetchStreamStatus(statusUrl: string): Promise<any> {
     const data = await response.json()
     return data
   } catch (error) {
-    throw error instanceof Error ? error : new Error('Failed to fetch status')
+    if (error instanceof Error) {
+      // If it's an HTTP error we created above, preserve its message
+      if (error.message.startsWith('HTTP')) {
+        throw error
+      }
+      throw new Error('Failed to fetch status')
+    }
+    throw new Error('Failed to fetch status')
   }
 }
 
