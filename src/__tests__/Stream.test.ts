@@ -49,7 +49,6 @@ const mockedFetchStreamStatus = vi.mocked(mockFetchStreamStatus)
 const mockFetch = vi.fn()
 let mockGetUserMedia: ReturnType<typeof setupNavigatorMediaMocks>['mockGetUserMedia']
 let mockGetMediaDevices: ReturnType<typeof setupNavigatorMediaMocks>['mockEnumerateDevices']
-let mockGetDisplayMedia: ReturnType<typeof setupNavigatorMediaMocks>['mockGetDisplayMedia']
 let mockPeerConnectionFactory: any
 let mockPeerConnection: any
 
@@ -72,7 +71,6 @@ describe('Stream class', () => {
     const mediaMocks = setupNavigatorMediaMocks()
     mockGetUserMedia = mediaMocks.mockGetUserMedia
     mockGetMediaDevices = mediaMocks.mockEnumerateDevices
-    mockGetDisplayMedia = mediaMocks.mockGetDisplayMedia
     mockPeerConnection = {
       addEventListener: vi.fn(),
       addTrack: vi.fn(),

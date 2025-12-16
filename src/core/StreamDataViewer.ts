@@ -35,7 +35,7 @@ export class DataStreamClient extends EventEmitter<DataStreamEventMap> {
           tmp.close()
         }
       }
-    } catch (e) {
+    } catch {
       // ignore - only a best-effort to help tests
     }
   }
