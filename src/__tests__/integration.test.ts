@@ -6,11 +6,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Stream } from '../core/Stream'
 import { StreamViewer } from '../core/StreamViewer'
 import { DataStreamClient } from '../core/StreamDataViewer'
-import { StreamConfig, StreamStartOptions, ViewerStartOptions, DataStreamOptions } from '../types'
+import { StreamConfig, ViewerStartOptions, DataStreamOptions } from '../types'
 import { setupTestEnvironment } from './setup'
 
 describe('Integration tests', () => {
-  let stream: Stream
   let viewer: StreamViewer
   let dataClient: DataStreamClient
   let config: StreamConfig
@@ -31,7 +30,7 @@ describe('Integration tests', () => {
       defaultPipeline: 'comfystream'
     })
     
-    stream = new Stream(config)
+    new Stream(config)
     viewer = new StreamViewer(config)
     dataClient = new DataStreamClient(config)
   })
@@ -54,19 +53,6 @@ describe('Integration tests', () => {
         ok: true,
         json: async () => mockStreamResponse
       })
-
-      const startOptions: StreamStartOptions = {
-        streamName: 'test-stream',
-        pipeline: 'comfystream',
-        width: 1280,
-        height: 720,
-        fpsLimit: 30,
-        enableVideoIngress: true,
-        enableAudioIngress: true,
-        enableVideoEgress: true,
-        enableAudioEgress: true,
-        enableDataOutput: true
-      }
 
       // This would typically be called through stream.start()
       config.updateFromStreamStartResponse(mockStreamResponse)
@@ -201,11 +187,6 @@ describe('Integration tests', () => {
         text: async () => 'Invalid request'
       })
 
-      const startOptions: StreamStartOptions = {
-        streamName: 'test-stream',
-        pipeline: 'comfystream'
-      }
-
       // This would typically throw an error during stream.start()
       expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
     })
@@ -230,10 +211,6 @@ describe('Integration tests', () => {
         statusText: 'Not Found'
       })
 
-      const viewerOptions: ViewerStartOptions = {
-        whepUrl: config.getWhepUrl()
-      }
-
       // This would typically throw an error during viewer.start()
       expect(viewer.getConnectionStatus()).toBe('disconnected')
     })
@@ -255,10 +232,6 @@ describe('Integration tests', () => {
       // Simulate EventSource error
       const eventSource = (global.EventSource as any).mock.results[0].value
       eventSource.onerror = new Error('Connection failed')
-
-      const dataOptions: DataStreamOptions = {
-        streamName: 'test-stream'
-      }
 
       // This would typically handle errors during dataClient.connect()
       expect(dataClient.getConnectionStatus()).toBe(false)
