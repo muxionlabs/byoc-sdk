@@ -450,15 +450,14 @@ describe('Stream class', () => {
 
     it('sends stop request and cleans up when active', async () => {
       ;(stream as any).streamInfo = { ...mockStartResponse }
+      config.updateFromStreamStartResponse(mockStartResponse as any)
       const stoppedListener = vi.fn()
       stream.on('streamStopped', stoppedListener)
 
       await stream.stop()
 
       expect(mockedStopStream).toHaveBeenCalledWith(
-        config.getStreamStopUrl(),
-        'stream-123',
-        'comfystream'
+        config.getStreamStopUrl()
       )
       expect(stream.getConnectionStatus()).toBe('disconnected')
       expect(stoppedListener).toHaveBeenCalled()

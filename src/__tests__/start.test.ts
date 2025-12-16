@@ -157,16 +157,11 @@ describe('Stream Start API', () => {
         text: async () => ''
       })
 
-      const result = await stopStream('https://example.com/stop', 'stream-123', 'comfystream')
+      const result = await stopStream('https://example.com/stop')
 
       expect(result).toBe(true)
       expect(mockFetch).toHaveBeenCalledWith('https://example.com/stop', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Livepeer': expect.any(String)
-        },
-        body: expect.any(String)
+        method: 'POST'
       })
     })
 
@@ -178,14 +173,14 @@ describe('Stream Start API', () => {
         text: async () => 'Invalid request'
       })
 
-      await expect(stopStream('https://example.com/stop', 'stream-123', 'comfystream'))
+      await expect(stopStream('https://example.com/stop'))
         .rejects.toThrow('Failed to stop stream (400): Invalid request')
     })
 
     it('should handle network errors', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-      await expect(stopStream('https://example.com/stop', 'stream-123', 'comfystream'))
+      await expect(stopStream('https://example.com/stop'))
         .rejects.toThrow('Network error')
     })
 
@@ -196,7 +191,7 @@ describe('Stream Start API', () => {
         statusText: 'Not Found'
       })
 
-      const result = await stopStream('https://example.com/stop', 'stream-123', 'comfystream')
+      const result = await stopStream('https://example.com/stop')
 
       expect(result).toBe(false)
     })
