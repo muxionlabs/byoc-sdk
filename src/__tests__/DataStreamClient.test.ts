@@ -9,6 +9,12 @@ import { StreamConfig, DataStreamOptions } from '../types'
 // Mock EventSource
 const mockEventSource = vi.fn()
 const mockClose = vi.fn()
+let eventSourceInstance: any
+let eventHandlers: {
+  onopen: ((ev?: any) => void) | null
+  onmessage: ((ev: MessageEvent<any>) => void) | null
+  onerror: ((ev?: any) => void) | null
+}
 
 describe('DataStreamClient class', () => {
   let client: DataStreamClient
@@ -16,15 +22,41 @@ describe('DataStreamClient class', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    eventSourceInstance = null
+    eventHandlers = {
+      onopen: null,
+      onmessage: null,
+      onerror: null
+    }
     global.EventSource = mockEventSource as any
     
     mockEventSource.mockImplementation(function() {
-      return {
-        close: mockClose,
-        onopen: null,
-        onmessage: null,
-        onerror: null
+      const eventSource = {
+        close: () => {
+          mockClose()
+          eventSourceInstance = null
+        },
+        get onopen() {
+          return eventHandlers.onopen
+        },
+        set onopen(handler) {
+          eventHandlers.onopen = handler
+        },
+        get onmessage() {
+          return eventHandlers.onmessage
+        },
+        set onmessage(handler) {
+          eventHandlers.onmessage = handler
+        },
+        get onerror() {
+          return eventHandlers.onerror
+        },
+        set onerror(handler) {
+          eventHandlers.onerror = handler
+        }
       }
+      eventSourceInstance = eventSource
+      return eventSource
     })
   })
 
@@ -146,7 +178,7 @@ describe('DataStreamClient class', () => {
       expect(client.getConnectionStatus()).toBe(true)
     })
 
-    it('should handle EventSource errors', async () => {
+    it('emits error and disconnects when SSE fails', async () => {
       const options: DataStreamOptions = {
         streamName: 'test-stream'
       }
@@ -162,13 +194,21 @@ describe('DataStreamClient class', () => {
         streamId: 'test-stream'
       })
 
-      // Simulate EventSource error
-      const eventSource = mockEventSource.mock.results[0].value
-      eventSource.onerror = new Error('Connection failed')
+      const errorListener = vi.fn()
+      const disconnectedListener = vi.fn()
+      client.on('error', errorListener)
+      client.on('disconnected', disconnectedListener)
 
       await client.connect(options)
+      expect(eventHandlers.onerror).toBeTruthy()
 
-      expect(client.getConnectionStatus()).toBe(true) // Still connected despite error handler
+      eventHandlers.onerror?.(new Event('error'))
+
+      expect(errorListener).toHaveBeenCalledTimes(1)
+      expect(disconnectedListener).toHaveBeenCalledTimes(1)
+      expect(mockClose).toHaveBeenCalled()
+      expect(client.getConnectionStatus()).toBe(false)
+      expect(eventSourceInstance).toBeNull()
     })
   })
 
@@ -192,58 +232,10 @@ describe('DataStreamClient class', () => {
 
       expect(callback).toHaveBeenCalled()
     })
-
-    it('should handle multiple event listeners', () => {
-      const callback1 = vi.fn()
-      const callback2 = vi.fn()
-
-      client.on('connected', callback1)
-      client.on('connected', callback2)
-
-      // This would be triggered during connect
-      expect(callback1).not.toHaveBeenCalled()
-      expect(callback2).not.toHaveBeenCalled()
-    })
-
-    it('should remove event listeners', () => {
-      const callback = vi.fn()
-
-      client.on('connected', callback)
-      client.off('connected', callback)
-
-      // This would be triggered during connect
-      expect(callback).not.toHaveBeenCalled()
-    })
   })
 
   describe('data handling', () => {
-    it('should handle data events', async () => {
-      const callback = vi.fn()
-      client.on('data', callback)
-
-      config.updateFromStreamStartResponse({
-        whipUrl: 'whip-url',
-        whepUrl: 'whep-url',
-        rtmpUrl: 'rtmp-url',
-        rtmpOutputUrl: 'rtmp-output-url',
-        updateUrl: 'update-url',
-        statusUrl: 'status-url',
-        dataUrl: 'https://example.com/data/test-stream',
-        streamId: 'test-stream'
-      })
-
-      await client.connect({ streamName: 'test-stream' })
-
-      // This would typically be triggered by EventSource onmessage
-      expect(callback).not.toHaveBeenCalled() // No data events yet
-    })
-
-    it('should maintain log limit', async () => {
-      const options: DataStreamOptions = {
-        streamName: 'test-stream',
-        maxLogs: 2
-      }
-
+    const prepareConnection = async (options: DataStreamOptions) => {
       config.updateFromStreamStartResponse({
         whipUrl: 'whip-url',
         whepUrl: 'whep-url',
@@ -256,9 +248,60 @@ describe('DataStreamClient class', () => {
       })
 
       await client.connect(options)
+    }
 
-      // This would typically be tested by simulating multiple data events
-      expect(client.getConnectionStatus()).toBe(true)
+    it('emits data events and stores parsed payloads', async () => {
+      const callback = vi.fn()
+      client.on('data', callback)
+
+      await prepareConnection({ streamName: 'test-stream', maxLogs: 3 })
+
+      eventHandlers.onmessage?.({ data: '{"type":"metric","value":1}' } as any)
+      eventHandlers.onmessage?.({ data: '{"value":2}' } as any)
+
+      const logs = client.getLogs()
+      expect(callback).toHaveBeenCalledTimes(2)
+      expect(logs[0].type).toBe('metric')
+      expect(logs[0].data.value).toBe(1)
+      expect(logs[1].data.value).toBe(2)
+    })
+
+    it('maintains log limit by dropping the oldest entries', async () => {
+      await prepareConnection({ streamName: 'test-stream', maxLogs: 2 })
+
+      eventHandlers.onmessage?.({ data: '{"value":1}' } as any)
+      eventHandlers.onmessage?.({ data: '{"value":2}' } as any)
+      eventHandlers.onmessage?.({ data: '{"value":3}' } as any)
+
+      const logs = client.getLogs()
+      expect(logs).toHaveLength(2)
+      expect(logs[0].data.value).toBe(2)
+      expect(logs[1].data.value).toBe(3)
+    })
+
+    it('records raw payloads when JSON parsing fails', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      await prepareConnection({ streamName: 'test-stream', maxLogs: 5 })
+
+      eventHandlers.onmessage?.({ data: 'not-json' } as any)
+
+      const logs = client.getLogs()
+      expect(logs[0].type).toBe('raw')
+      expect(logs[0].data.raw).toBe('not-json')
+      consoleSpy.mockRestore()
+    })
+
+    it('generates unique ids even when timestamps match', async () => {
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1700000000000)
+      await prepareConnection({ streamName: 'test-stream', maxLogs: 5 })
+
+      eventHandlers.onmessage?.({ data: '{"value":1}' } as any)
+      eventHandlers.onmessage?.({ data: '{"value":2}' } as any)
+
+      const logs = client.getLogs()
+      expect(logs[0].id).toBe('data-0')
+      expect(logs[1].id).toBe('data-1')
+      nowSpy.mockRestore()
     })
   })
 })

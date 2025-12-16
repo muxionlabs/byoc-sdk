@@ -74,7 +74,7 @@ describe('Integration tests', () => {
       expect(config.getWhipUrl()).toBe('http://localhost:8088/whip/stream-123')
       expect(config.getWhepUrl()).toBe('http://localhost:8088/whep/stream-123')
       expect(config.getDataUrl()).toBe('http://localhost:8088/data/stream-123')
-      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/ai/stream/stream-123/start')
+      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
     })
 
     it('should handle stream viewer connection', async () => {
@@ -157,7 +157,7 @@ describe('Integration tests', () => {
       })
 
       // This would typically be called through stream.update()
-      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/ai/stream/stream-123/start')
+      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
     })
 
     it('should handle stream status monitoring', async () => {
@@ -207,7 +207,7 @@ describe('Integration tests', () => {
       }
 
       // This would typically throw an error during stream.start()
-      expect(config.getStreamStartUrl()).toBe('')
+      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
     })
 
     it('should handle viewer connection failure', async () => {
@@ -314,7 +314,7 @@ describe('Integration tests', () => {
       }
 
       config.updateFromStreamStartResponse(response1)
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/ai/stream/stream-123/start')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
 
       const response2 = {
         whipUrl: 'https://example.com/whip/stream-456',
@@ -328,7 +328,7 @@ describe('Integration tests', () => {
       }
 
       config.updateFromStreamStartResponse(response2)
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/ai/stream/stream-456/start')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
     })
   })
 })

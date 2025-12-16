@@ -7,14 +7,14 @@ import { StreamConfig, StreamStartResponse } from '../types'
 
 describe('StreamConfig URL construction', () => {
   describe('getStreamStartUrl', () => {
-    it('should return empty string when no stream start response', () => {
+    it('should return base start URL when no stream start response', () => {
       const config = new StreamConfig({
         gatewayUrl: 'https://example.com:8088'
       })
       
       const startUrl = config.getStreamStartUrl()
       
-      expect(startUrl).toBe('')
+      expect(startUrl).toBe('https://example.com:8088/gateway/ai/stream/start')
     })
 
     it('should construct start URL from stream ID', () => {
@@ -36,7 +36,7 @@ describe('StreamConfig URL construction', () => {
       config.updateFromStreamStartResponse(mockResponse)
       const startUrl = config.getStreamStartUrl()
       
-      expect(startUrl).toBe('https://example.com:8088/ai/stream/test-stream-123/start')
+      expect(startUrl).toBe('https://example.com:8088/gateway/ai/stream/start')
     })
 
     it('should handle gateway URL with trailing slash', () => {
@@ -58,7 +58,7 @@ describe('StreamConfig URL construction', () => {
       config.updateFromStreamStartResponse(mockResponse)
       const startUrl = config.getStreamStartUrl()
       
-      expect(startUrl).toBe('https://example.com:8088/ai/stream/my-stream/start')
+      expect(startUrl).toBe('https://example.com:8088/gateway/ai/stream/start')
     })
   })
 
@@ -92,7 +92,7 @@ describe('StreamConfig URL construction', () => {
       config.updateFromStreamStartResponse(mockResponse)
       const stopUrl = config.getStreamStopUrl()
       
-      expect(stopUrl).toBe('https://example.com:8088/ai/stream/test-stream-456/stop')
+      expect(stopUrl).toBe('https://example.com:8088/gateway/ai/stream/test-stream-456/stop')
     })
   })
 

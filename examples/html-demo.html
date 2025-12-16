@@ -91,7 +91,7 @@
     }
   </script>
   <script type="module">
-    import { StreamPublisher, StreamViewer, StreamConfig } from '../dist/index.mjs'
+    import { Stream, StreamViewer, StreamConfig } from '../dist/index.mjs'
 
     // Configuration
     const config = new StreamConfig({
@@ -100,7 +100,7 @@
     })
 
     // Global state
-    let publisher = null
+    let stream = null
     let streamInfo = null
     let savedWorkflows = []
     let viewer = null
@@ -110,15 +110,15 @@
       const streamName = `stream-${Date.now()}`
       document.getElementById('streamName').value = streamName
       
-      publisher = new StreamPublisher(config)
+      stream = new Stream(config)
       
       // Setup event listeners
-      publisher.on('statusChange', handleStatusChange)
-      publisher.on('statsUpdate', handleStatsUpdate)
-      publisher.on('error', handleError)
-      publisher.on('streamStarted', handleStreamStarted)
-      publisher.on('mediaStreamReady', handleMediaReady)
-      publisher.on('streamStopped', handleStreamStopped)
+      stream.on('statusChange', handleStatusChange)
+      stream.on('statsUpdate', handleStatsUpdate)
+      stream.on('error', handleError)
+      stream.on('streamStarted', handleStreamStarted)
+      stream.on('mediaStreamReady', handleMediaReady)
+      stream.on('streamStopped', handleStreamStopped)
       
       // Load saved workflows
       loadSavedWorkflows()
@@ -302,9 +302,10 @@
         log('🎬 Starting stream...', 'info')
         const streamName = document.getElementById('streamName').value
         const prompts = document.getElementById('prompts').value
-        
-        await publisher.start({
+
+        const startOptions = {
           streamName,
+          streamId: streamName,
           pipeline: document.getElementById('pipelineSelect').value,
           width: 1280,
           height: 720,
@@ -315,7 +316,13 @@
           enableAudioEgress: true,
           enableDataOutput: true,
           customParams: { prompts }
-        })
+        }
+
+        const response = await stream.start(startOptions)
+        if (response) {
+          config.updateFromStreamStartResponse(response)
+          await stream.publish(startOptions)
+        }
       } catch (error) {
         log(`❌ Failed to start: ${error.message}`, 'error')
         showError(error.message)
@@ -325,7 +332,7 @@
     window.stopStream = async function() {
       try {
         log('⏹️ Stopping stream...', 'info')
-        await publisher.stop()
+        await stream.stop()
       } catch (error) {
         log(`❌ Failed to stop: ${error.message}`, 'error')
       }
@@ -335,11 +342,11 @@
       try {
         const prompts = document.getElementById('prompts').value
         log(`🔄 Updating prompts: "${prompts}"`, 'info')
-        
-        await publisher.updateStream({
+
+        await stream.update({
           params: { prompts }
         })
-        
+
         log('✅ Prompts updated successfully', 'success')
       } catch (error) {
         log(`❌ Failed to update: ${error.message}`, 'error')

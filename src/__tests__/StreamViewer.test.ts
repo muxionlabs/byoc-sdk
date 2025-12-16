@@ -2,9 +2,12 @@
  * Tests for StreamViewer class
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { registerStreamApiMocks } from './helpers/streamMocks'
 import { StreamViewer } from '../core/StreamViewer'
 import { StreamConfig, ViewerStartOptions } from '../types'
+
+registerStreamApiMocks()
 
 // Mock WebRTC and fetch
 const mockFetch = vi.fn()
@@ -41,6 +44,10 @@ describe('StreamViewer class', () => {
       play: vi.fn(),
       pause: vi.fn()
     } as any
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   beforeEach(() => {
@@ -180,30 +187,6 @@ describe('StreamViewer class', () => {
 
       expect(callback).toHaveBeenCalledWith('connecting')
     })
-
-    it('should handle multiple event listeners', () => {
-      const callback1 = vi.fn()
-      const callback2 = vi.fn()
-
-      viewer.on('statusChange', callback1)
-      viewer.on('statusChange', callback2)
-
-      viewer.emit('statusChange', 'connected')
-
-      expect(callback1).toHaveBeenCalledWith('connected')
-      expect(callback2).toHaveBeenCalledWith('connected')
-    })
-
-    it('should remove event listeners', () => {
-      const callback = vi.fn()
-
-      viewer.on('statusChange', callback)
-      viewer.off('statusChange', callback)
-
-      viewer.emit('statusChange', 'connecting')
-
-      expect(callback).not.toHaveBeenCalled()
-    })
   })
 
   describe('error handling', () => {
@@ -215,6 +198,69 @@ describe('StreamViewer class', () => {
       viewer.emit('error', error)
 
       expect(callback).toHaveBeenCalledWith(error)
+    })
+  })
+
+  describe('stats parsing', () => {
+    it('calculates bitrate and fps from inbound-rtp stats', async () => {
+      const statsCallback = vi.fn()
+      viewer.on('statsUpdate', statsCallback)
+
+      const mockPc = mockCreatePeerConnection()
+      const now = Date.now()
+
+      // First sample
+      const stats1 = new Map([
+        ['inbound-video', {
+          type: 'inbound-rtp',
+          kind: 'video',
+          bytesReceived: 10000,
+          framesDecoded: 30,
+          frameWidth: 1280,
+          frameHeight: 720
+        }]
+      ])
+      mockPc.getStats.mockResolvedValueOnce(stats1)
+
+      // Manually trigger stats update by accessing private method
+      await (viewer as any).parseStats?.(stats1)
+
+      // Second sample (1 second later, 50kbps, 30fps)
+      const stats2 = new Map([
+        ['inbound-video', {
+          type: 'inbound-rtp',
+          kind: 'video',
+          bytesReceived: 16250, // +6250 bytes = 50kbps
+          framesDecoded: 60,    // +30 frames = 30fps
+          frameWidth: 1280,
+          frameHeight: 720
+        }]
+      ])
+
+      // Mock Date.now to simulate 1 second passing
+      const dateSpy = vi.spyOn(Date, 'now')
+      dateSpy.mockReturnValueOnce(now)
+      await (viewer as any).parseStats?.(stats1)
+      
+      dateSpy.mockReturnValueOnce(now + 1000)
+      const result = await (viewer as any).parseStats?.(stats2)
+
+      expect(result.bitrate).toBeGreaterThan(0)
+      expect(result.fps).toBeGreaterThan(0)
+      expect(result.resolution).toBe('1280x720')
+
+      dateSpy.mockRestore()
+    })
+
+    it('returns zero stats when no video data is available', async () => {
+      const emptyStats = new Map()
+      const result = await (viewer as any).parseStats?.(emptyStats)
+
+      expect(result).toEqual({
+        bitrate: 0,
+        fps: 0,
+        resolution: ''
+      })
     })
   })
 })

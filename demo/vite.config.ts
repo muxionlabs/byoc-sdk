@@ -3,9 +3,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 const repoRoot = path.resolve(__dirname, '..')
+const sdkSrc = path.resolve(repoRoot, 'src')
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@muxionlabs/byoc-sdk': sdkSrc
+    }
+  },
   server: {
     host: '0.0.0.0',
     port: 3005,

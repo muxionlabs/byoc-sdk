@@ -134,38 +134,48 @@ export class Stream extends EventEmitter<StreamEventMap> {
    * Create WHIP connection and return stream start response
    */
   async publish(options: StreamStartOptions): Promise<boolean> {     
-    // Get media stream
-    this.localStream = await this.getMediaStream(options)
-    this.emit('mediaStreamReady', this.localStream)
+    try {
+      // Get media stream
+      this.localStream = await this.getMediaStream(options)
+      this.emit('mediaStreamReady', this.localStream)
 
-    // Create peer connection
-    this.peerConnection = await this.createPeerConnection(this.localStream!)
+      // Create peer connection
+      this.peerConnection = await this.createPeerConnection(this.localStream!)
 
-    // Create and send WHIP offer
-    const offer = await this.peerConnection.createOffer({
-      offerToReceiveAudio: false,
-      offerToReceiveVideo: false
-    })
-    await this.peerConnection.setLocalDescription(offer)
+      // Create and send WHIP offer
+      const offer = await this.peerConnection.createOffer({
+        offerToReceiveAudio: false,
+        offerToReceiveVideo: false
+      })
+      await this.peerConnection.setLocalDescription(offer)
 
-    // Wait for ICE gathering
-    await this.waitForICEGathering(this.peerConnection)
+      // Wait for ICE gathering
+      await this.waitForICEGathering(this.peerConnection)
 
-    // Send WHIP offer to the URL returned by the gateway
-    const response = await sendWhipOffer(this.config.getWhipUrl(), this.peerConnection.localDescription!.sdp)
+      // Send WHIP offer to the URL returned by the gateway
+      const response = await sendWhipOffer(this.config.getWhipUrl(), this.peerConnection.localDescription!.sdp)
 
-    // Set remote description
-    await this.peerConnection.setRemoteDescription({
-      type: 'answer',
-      sdp: response.answerSdp
-    })
+      // Set remote description
+      await this.peerConnection.setRemoteDescription({
+        type: 'answer',
+        sdp: response.answerSdp
+      })
 
-    this.config.location = response.locationHeader || ""
-    this.config.eTag = response.eTagHeader || ""
-    this.config.link = response.linkHeader || ""
-    this.config.playbackUrl = response.playbackUrl || ""
+      this.config.location = response.locationHeader || ""
+      this.config.eTag = response.eTagHeader || ""
+      this.config.link = response.linkHeader || ""
+      this.config.playbackUrl = response.playbackUrl || ""
 
-    return response.status === 201
+      return response.status === 201
+    } catch (error) {
+      this.setStatus('error')
+      const streamError = error instanceof StreamError
+        ? error
+        : new ConnectionError('Failed to publish stream', error)
+      this.emit('error', streamError)
+      await this.cleanup()
+      throw streamError
+    }
   }
 
   async status(): Promise<any> {

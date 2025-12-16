@@ -18,7 +18,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@muxionlabs/byoc-sdk": ["../src"],
+      "@muxionlabs/byoc-sdk/*": ["../src/*"]
+    }
   },
   "include": ["src"]
 }
