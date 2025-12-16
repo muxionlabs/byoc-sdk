@@ -14,12 +14,12 @@
 **Tech Stack**: TypeScript, WebRTC (WHIP/WHEP), React (optional), Server-Sent Events (SSE)
 
 **Core Flow**: 
-1. **Publish**: Device Camera/Mic → `StreamPublisher` → WHIP Endpoint → AI Pipeline
+1. **Publish**: Device Camera/Mic → `Stream` → WHIP Endpoint → AI Pipeline
 2. **View**: AI Pipeline Output → WHEP Endpoint → `StreamViewer` → Video Element
 3. **Data**: AI Pipeline Metadata → SSE Endpoint → `DataStreamClient` → App UI
 
 **Key Files to Know**:
-- `src/core/StreamPublisher.ts` - Handles media capture and WHIP publishing
+- `src/core/Stream.ts` - Handles media capture and WHIP publishing
 - `src/core/StreamViewer.ts` - Handles WHEP playback
 - `src/core/DataStreamClient.ts` - Handles real-time AI data (SSE)
 - `src/react/` - React hooks for all core components
@@ -65,7 +65,7 @@ The SDK is built around standalone classes that can be used in any JavaScript en
 
 ```
 ┌─────────────────┐       ┌─────────────────┐
-│ StreamPublisher │ ────▶ │  WHIP Endpoint  │
+│     Stream      │ ────▶ │  WHIP Endpoint  │
 └─────────────────┘       └─────────────────┘
         │
         ▼
@@ -84,7 +84,7 @@ The SDK is built around standalone classes that can be used in any JavaScript en
 
 Wrappers around core components to manage lifecycle and state in React apps.
 
-- `useStreamPublisher`: Manages `StreamPublisher` instance, device lists, and connection state.
+- `useStream`: Manages `Stream` instance, device lists, and connection state.
 - `useStreamViewer`: Manages `StreamViewer` and video element refs.
 - `useDataStream`: Subscribes to AI events and updates state.
 
@@ -95,11 +95,11 @@ Wrappers around core components to manage lifecycle and state in React apps.
 ### Source (`src/`)
 
 - **`core/`**: Main logic.
-    - `StreamPublisher.ts`: Manages `RTCPeerConnection` for sending video. Handles ICE restarts, device switching, and bandwidth management.
+    - `Stream.ts`: Manages `RTCPeerConnection` for sending video. Handles ICE restarts, device switching, and bandwidth management.
     - `StreamViewer.ts`: Manages `RTCPeerConnection` for receiving video.
     - `DataStreamClient.ts`: `EventSource` wrapper for AI data.
 - **`react/`**: React hooks.
-    - `useStreamPublisher.ts`, `useStreamViewer.ts`, `useDataStream.ts`.
+    - `useStream.ts`, `useStreamViewer.ts`, `useDataStream.ts`.
 - **`api/`**: Internal API helpers (fetching SDPs, etc.).
 - **`utils/`**: Shared utilities (logging, error handling).
 
@@ -140,29 +140,54 @@ const config = new StreamConfig({
 **Key Design Principles**:
 - **Single source of truth**: Gateway URL is the only required field, all endpoint URLs are derived automatically
 - **Simplicity**: One parameter object with sensible defaults
-- **Encapsulation**: StreamConfig provides helper methods for constructing control-plane URLs (`getWhipUrl()`, `getDataUrl()`, `getStatusUrl()`, `getUpdateUrl()`, `getStopUrl()`)
-- **Gateway-first**: Data-plane URLs (like `whepUrl`) are returned directly by the gateway as full URLs and used as-is
+- **Encapsulation**: StreamConfig provides helper methods for accessing URLs from the gateway response (`getWhipUrl()`, `getWhepUrl()`, `getDataUrl()`, `getStatusUrl()`, `getUpdateUrl()`, `getStreamStopUrl()`)
+- **Gateway-first**: All stream-specific URLs are returned directly by the gateway in the `StreamStartResponse` and used as-is
 - **Customization**: Optional path overrides for non-standard gateway configurations (all have defaults)
 
 **URL Construction Pattern**:
 ```typescript
-// StreamConfig builds control-plane URLs from base gateway URL + paths
-config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
-// → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
+// 1. StreamConfig constructs the initial start URL from gateway base
+config.getStreamStartUrl()
+// → https://gateway.example.com:8088/gateway/ai/stream/start
 
-config.getStatusUrl('stream-123')
-// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/status
+// 2. Call startStream API to initialize the stream
+import { startStream } from '@muxionlabs/byoc-sdk/api/start'
+const startResponse = await startStream(config.getStreamStartUrl(), {
+  streamName: 'my-stream',
+  pipeline: 'comfystream',
+  width: 1280,
+  height: 720
+})
 
-config.getDataUrl('my-stream')
-// → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
+// 3. Gateway returns ALL stream-specific URLs in StreamStartResponse
+// {
+//   streamId: 'stream-123',
+//   whipUrl: '...',     // WebRTC publishing endpoint
+//   whepUrl: '...',     // WebRTC viewing endpoint
+//   dataUrl: '...',     // SSE data endpoint
+//   statusUrl: '...',   // Status polling endpoint
+//   updateUrl: '...',   // Parameter update endpoint
+//   stopUrl: '...',     // Stop endpoint (added in PR #41)
+//   rtmpUrl: '...',
+//   rtmpOutputUrl: '...'
+// }
 
-// startStream now returns stopUrl; StreamConfig surfaces it via getStreamStopUrl()
+// 4. Store the response in config and access URLs via helpers
 config.updateFromStreamStartResponse(startResponse)
-config.getStreamStopUrl()
-// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/stop
+
+config.getWhipUrl()     // → returns whipUrl from response
+config.getWhepUrl()     // → returns whepUrl from response
+config.getDataUrl()     // → returns dataUrl from response
+config.getStatusUrl()   // → returns statusUrl from response
+config.getUpdateUrl()   // → returns updateUrl from response
+config.getStreamStopUrl() // → returns stopUrl from response
+
+// 5. Use stopUrl to terminate the stream
+import { stopStream } from '@muxionlabs/byoc-sdk/api/start'
+await stopStream(config.getStreamStopUrl())
 ```
 
-**Key Design Principle**: Gateway returns full URLs for data-plane endpoints (like `whepUrl`). The SDK uses these directly without additional construction. Control-plane URLs (status, update, stop) are derived from the gateway base URL using StreamConfig helpers.
+**Key Design Principle**: The gateway returns **full, ready-to-use URLs** for all stream operations in the `StreamStartResponse`. The SDK stores these URLs and provides typed accessor methods. Only the initial start URL is constructed from the gateway base; everything else comes from the gateway response. This ensures the SDK works correctly even when the gateway uses non-standard paths or external domains.
 
 ### Error Handling
 
@@ -175,8 +200,14 @@ config.getStreamStopUrl()
 - Extensive use of TypeScript interfaces for API responses and configuration.
 - `StreamConfig` constructor accepts an inline typed object (no separate `StreamConfigOptions` interface needed).
 - Specific types exported for options: `StreamStartOptions`, `StreamUpdateOptions`, `ViewerStartOptions`, `DataStreamOptions`.
-- Response types: `StreamStartResponse`, `WhipOfferResponse`, `WhepOfferResponse`.
+- Response types: 
+  - `StreamStartResponse` - Contains all stream URLs including `stopUrl` (added in PR #41)
+  - `WhipOfferResponse` - WHIP negotiation response
+  - `WhepOfferResponse` - WHEP negotiation response
 - Error classes: `StreamError`, `ConnectionError`, `MediaError`.
+- API functions:
+  - `startStream(url, options)` → `Promise<StreamStartResponse>`
+  - `stopStream(stopUrl)` → `Promise<boolean>` (added in PR #41)
 
 ---
 
@@ -209,6 +240,39 @@ To test changes in the demo app:
 1. Ensure backward compatibility or update major version.
 2. Verify WebRTC negotiation still works (WHIP/WHEP).
 3. Check error handling and cleanup (closing connections).
+
+---
+
+## 🆕 Recent Changes
+
+### PR #41: Gateway-Provided Stop URL
+
+**What Changed**: The gateway now returns a `stopUrl` in the `StreamStartResponse`, eliminating the need for the SDK to construct stop URLs.
+
+**Benefits**:
+- **Flexibility**: Gateway can use any path structure or domain for the stop endpoint
+- **Simplicity**: SDK doesn't need to know the stop URL pattern
+- **Consistency**: All stream-specific URLs now come from the gateway response
+
+**Migration**: No breaking changes. The SDK now uses the gateway-provided `stopUrl` instead of constructing it.
+
+**Key Components Updated**:
+- `StreamStartResponse` interface - Added `stopUrl: string` field
+- `startStream()` function - Parses and returns `stopUrl` from gateway response
+- `stopStream()` function - Accepts `stopUrl` as parameter (was previously using constructed URL)
+- `StreamConfig.getStreamStopUrl()` - Returns `stopUrl` from stored response
+
+**Usage Pattern**:
+```typescript
+// Start the stream
+const startResponse = await startStream(config.getStreamStartUrl(), options)
+
+// Store the response (includes stopUrl)
+config.updateFromStreamStartResponse(startResponse)
+
+// Later, stop the stream using the gateway-provided URL
+await stopStream(config.getStreamStopUrl())
+```
 
 ---
 

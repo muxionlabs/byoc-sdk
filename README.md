@@ -27,13 +27,13 @@ The `serve:examples` script spins up `http-server` against the repo root and imm
 ## Example Preview
 
 - `examples/html-demo.html` is the only bundled example. It wires the SDK to the browser camera, logs events, and renders stats + config controls.
-- Adjust the `prompts` input or the `StreamPublisher` start options inside that file to exercise different AI pipelines or resolutions.
-- Use the `StreamPublisher`, `StreamViewer`, and `DataStreamClient` snippets below as the foundation for your own pages.
+- Adjust the `prompts` input or the `Stream` start options inside that file to exercise different AI pipelines or resolutions.
+- Use the `Stream`, `StreamViewer`, and `DataStreamClient` snippets below as the foundation for your own pages.
 
 ## Integrating the SDK
 
 ```ts
-import { StreamPublisher, StreamConfig } from '@muxionlabs/byoc-sdk'
+import { Stream, StreamConfig } from '@muxionlabs/byoc-sdk'
 
 // Define your gateway base URL
 const GATEWAY_URL = 'https://your-gateway.example.com:8088'
@@ -49,7 +49,7 @@ const config = new StreamConfig({
   defaultPipeline: 'comfystream'
 })
 
-const publisher = new StreamPublisher(config)
+const publisher = new Stream(config)
 
 await publisher.start({
   streamName: 'my-stream',
@@ -68,16 +68,26 @@ await publisher.updateStream({
   // Width/height changes require restarting the stream, so omit them here.
 })
 
-// Stop the stream using the stopUrl returned from startStream/StreamConfig
+// Stop the stream
+await publisher.stop()
+
+// OR use the low-level API directly with stopUrl from the start response
 import { startStream, stopStream } from '@muxionlabs/byoc-sdk/api/start'
 
 const startResponse = await startStream(config.getStreamStartUrl(), {
   streamName: 'my-stream',
-  pipeline: 'comfystream'
+  pipeline: 'comfystream',
+  width: 1280,
+  height: 720
 })
 
-// stopUrl is now part of the start response (PR #41)
-await stopStream(startResponse.stopUrl)
+// The gateway returns a stopUrl in the start response
+// Store it for later use or access via config.getStreamStopUrl()
+config.updateFromStreamStartResponse(startResponse)
+const stopUrl = config.getStreamStopUrl()
+
+// When ready to stop, use the stopUrl
+await stopStream(stopUrl)
 ```
 
 Hook up a `StreamViewer` to the same `StreamConfig` to render the WHEP output, or create a `DataStreamClient` for SSE payloads to mirror real-time insights from the demo.
