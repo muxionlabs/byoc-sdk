@@ -456,9 +456,7 @@ describe('Stream class', () => {
       await stream.stop()
 
       expect(mockedStopStream).toHaveBeenCalledWith(
-        config.getStreamStopUrl(),
-        'stream-123',
-        'comfystream'
+        config.getStreamStopUrl()
       )
       expect(stream.getConnectionStatus()).toBe('disconnected')
       expect(stoppedListener).toHaveBeenCalled()

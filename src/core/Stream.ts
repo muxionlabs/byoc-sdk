@@ -262,9 +262,7 @@ export class Stream extends EventEmitter<StreamEventMap> {
       // Send stop request if we have stream info
       if (this.streamInfo.streamId) {
         await stopStream(
-          this.config.getStreamStopUrl(),
-          this.streamInfo.streamId,
-          this.resolveActivePipeline('stop')
+          this.config.getStreamStopUrl()
         )
       }
 

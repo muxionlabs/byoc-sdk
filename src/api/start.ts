@@ -80,7 +80,7 @@ export async function startStream(
     updateUrl: getField(data, 'update_url', 'updateUrl'),
     statusUrl: getField(data, 'status_url', 'statusUrl'),
     dataUrl: getField(data, 'data_url', 'dataUrl'),
-    stopUrl: getField(data, 'stop_url', 'stopUrl'),
+    
     streamId: getField(data, 'stream_id', 'streamId')
   }
 }
@@ -91,28 +91,15 @@ export async function startStream(
  */
 export async function stopStream(
   stopUrl: string,
-  streamId: string,
-  pipeline: string
 ): Promise<boolean> {
   try {
-    console.log(`Stopping stream with ID: ${streamId}`)
-
-    const requestData = {
-      "request": JSON.stringify({ "stream_id": streamId }),
-      "parameters": JSON.stringify({}),
-      "capability": pipeline,
-      "timeout_seconds": 5
-    }
-
-    const livepeerHeader = btoa(JSON.stringify(requestData))
+    console.log(`Stopping stream: ${stopUrl}`)
 
     const response = await fetch(stopUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Livepeer': livepeerHeader
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ stream_id: streamId })
     })
 
     if (response.ok) {
