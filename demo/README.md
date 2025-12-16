@@ -34,7 +34,7 @@ The optimized output lands in `demo/dist/`.
 
 The demo reads a single environment variable:
 
-- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://eliteencoder.net:8088`). The app creates a `StreamConfig` instance with this URL, which automatically derives WHIP/WHEP/data endpoint paths.
+- `VITE_BYOC_BASE_URL` – base URL for the gateway (defaults to `https://localhost:8088`). The app creates a `StreamConfig` instance with this URL, which automatically derives WHIP/WHEP/data endpoint paths.
 
 Set the variable before running `npm run dev` or `npm run build` to target a different environment.
 

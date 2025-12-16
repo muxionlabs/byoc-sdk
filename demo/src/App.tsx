@@ -5,7 +5,7 @@ import {
   useStreamViewer,
   useDataStream
 } from '@muxionlabs/byoc-sdk'
-import type { ViewerStartOptions, DataStreamEvent, StreamStartResponse } from '@muxionlabs/byoc-sdk'
+import type { ViewerStartOptions, DataStreamEvent } from '@muxionlabs/byoc-sdk'
 import '../../examples/simple-demo.css'
 import { VideoPreview, StreamControls, StreamInfo, ConsoleLog } from './components'
 import type { LogEntry, LogLevel, SavedWorkflow, TextOverlay, StatsOverlay } from './types'
@@ -18,7 +18,7 @@ const STREAM_FPS = 30
 const MAX_VIEWER_RETRIES = 5
 const TEXT_OVERLAY_TTL = 6000
 const rawBaseUrl =
-  (import.meta.env?.VITE_BYOC_BASE_URL as string | undefined) || 'https://eliteencoder.net:8088'
+  (import.meta.env?.VITE_BYOC_BASE_URL as string | undefined) || 'https://localhost:8088'
 const BASE_URL = rawBaseUrl.replace(/\/$/, '')
 
 const WORKFLOWS_URL =
@@ -356,7 +356,6 @@ function App() {
     addLog('🎬 Starting stream...', 'info')
     const startOptions = {
       streamName,
-      streamId: streamName,
       pipeline,
       width: STREAM_WIDTH,
       height: STREAM_HEIGHT,

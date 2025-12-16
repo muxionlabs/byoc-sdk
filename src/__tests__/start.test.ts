@@ -161,12 +161,7 @@ describe('Stream Start API', () => {
 
       expect(result).toBe(true)
       expect(mockFetch).toHaveBeenCalledWith('https://example.com/ai/stream/stream-123/stop', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Livepeer': expect.any(String)
-        },
-        body: expect.any(String)
+        method: 'POST'
       })
     })
 

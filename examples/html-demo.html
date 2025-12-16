@@ -95,7 +95,7 @@
 
     // Configuration
     const config = new StreamConfig({
-      gatewayUrl: 'https://eliteencoder.net:8088',
+      gatewayUrl: 'https://localhost:8088',
       defaultPipeline: 'comfystream'
     })
 
@@ -129,7 +129,7 @@
     // Load saved workflows from API
     async function loadSavedWorkflows() {
       try {
-        const response = await fetch('https://eliteencoder.net:8088/workflows/')
+        const response = await fetch('https://localhost:8088/workflows/')
         if (response.ok) {
           savedWorkflows = await response.json()
           const select = document.getElementById('savedPromptsSelect')
@@ -305,7 +305,6 @@
 
         const startOptions = {
           streamName,
-          streamId: streamName,
           pipeline: document.getElementById('pipelineSelect').value,
           width: 1280,
           height: 720,
