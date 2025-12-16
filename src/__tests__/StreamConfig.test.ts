@@ -64,6 +64,7 @@ describe('StreamConfig class', () => {
         updateUrl: 'https://example.com/update/stream-123',
         statusUrl: 'https://example.com/status/stream-123',
         dataUrl: 'https://example.com/data/stream-123',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream-123/stop',
         streamId: 'stream-123'
       }
 
@@ -90,6 +91,7 @@ describe('StreamConfig class', () => {
         updateUrl: '',
         statusUrl: '',
         dataUrl: '',
+        stopUrl: '',
         streamId: 'stream-123'
       }
 
@@ -131,6 +133,7 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'status-url',
           dataUrl: 'data-url',
+          stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
           streamId: 'test-stream-456'
         })
 
@@ -152,6 +155,7 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'status-url',
           dataUrl: 'data-url',
+          stopUrl: 'stop-url',
           streamId: 'stream-123'
         })
 
@@ -173,6 +177,7 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'status-url',
           dataUrl: 'data-url',
+          stopUrl: 'stop-url',
           streamId: 'stream-456'
         })
 
@@ -194,6 +199,7 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'https://example.com/status/stream-789',
           dataUrl: 'data-url',
+          stopUrl: 'stop-url',
           streamId: 'stream-789'
         })
 
@@ -215,6 +221,7 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'status-url',
           dataUrl: 'https://example.com/data/stream-999',
+          stopUrl: 'stop-url',
           streamId: 'stream-999'
         })
 
@@ -254,6 +261,7 @@ describe('StreamConfig class', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop',
         streamId: 'stream_test-123_abc'
       })
 
@@ -274,6 +282,7 @@ describe('StreamConfig class', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: '',
         streamId: ''
       })
 

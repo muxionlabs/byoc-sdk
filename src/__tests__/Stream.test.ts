@@ -63,6 +63,7 @@ describe('Stream class', () => {
     updateUrl: 'update-url',
     statusUrl: 'status-url',
     dataUrl: 'data-url',
+    stopUrl: 'stop-url',
     streamId: 'stream-123'
   }
 
@@ -130,6 +131,7 @@ describe('Stream class', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-123'
       }
 

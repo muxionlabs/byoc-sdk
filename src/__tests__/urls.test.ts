@@ -30,6 +30,7 @@ describe('StreamConfig URL construction', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'test-stream-123'
       }
       
@@ -52,6 +53,7 @@ describe('StreamConfig URL construction', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'my-stream'
       }
       
@@ -86,6 +88,7 @@ describe('StreamConfig URL construction', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
         streamId: 'test-stream-456'
       }
       
@@ -120,6 +123,7 @@ describe('StreamConfig URL construction', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-123'
       }
       
@@ -154,6 +158,7 @@ describe('StreamConfig URL construction', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-456'
       }
       
@@ -188,6 +193,7 @@ describe('StreamConfig URL construction', () => {
         updateUrl: 'update-url',
         statusUrl: 'https://example.com/status/stream-789',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-789'
       }
       

@@ -24,6 +24,7 @@ describe('Stream Start API', () => {
         updateUrl: 'http://localhost:8088/update/stream-123',
         statusUrl: 'http://localhost:8088/status/stream-123',
         dataUrl: 'http://localhost:8088/data/stream-123',
+        stopUrl: 'http://localhost:8088/stop/stream-123',
         streamId: 'stream-123'
       }
 
@@ -96,6 +97,7 @@ describe('Stream Start API', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-123'
       }
 
@@ -123,6 +125,7 @@ describe('Stream Start API', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-123'
       }
 

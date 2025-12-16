@@ -43,6 +43,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
         streamId
       }
 
@@ -78,6 +79,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'https://example.com/status/stream-789',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-789'
       }
 
@@ -111,6 +113,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-123'
       }
 
@@ -144,6 +147,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'stop-url',
         streamId: 'stream-456'
       }
 
@@ -177,6 +181,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'https://example.com/data/stream-789',
+        stopUrl: 'stop-url',
         streamId: 'stream-789'
       }
 
@@ -210,6 +215,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop',
         streamId: 'stream_test-123_abc'
       }
 
@@ -232,6 +238,7 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/abc123def456/stop',
         streamId: 'abc123def456'
       }
 

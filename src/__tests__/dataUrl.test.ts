@@ -30,6 +30,7 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
       updateUrl: 'update-url',
       statusUrl: 'status-url',
       dataUrl: 'https://gateway-usa.muxion.video/g/gateway/ai/stream/demo-stream-f0b2a44e/data',
+      stopUrl: 'stop-url',
       streamId: 'demo-stream-f0b2a44e'
     }
     
@@ -52,6 +53,7 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
       updateUrl: 'update-url',
       statusUrl: 'status-url',
       dataUrl: 'https://gateway.example.com:8088/gateway/ai/stream/my-stream/data',
+      stopUrl: 'stop-url',
       streamId: 'my-stream'
     }
     
@@ -76,6 +78,7 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
       updateUrl: 'update-url',
       statusUrl: 'status-url',
       dataUrl: '',
+      stopUrl: '',
       streamId: 'test-stream'
     }
     
