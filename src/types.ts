@@ -56,12 +56,7 @@ export class StreamConfig {
    * Get Stream Stop URL
    */
   getStreamStopUrl(): string | "" {
-    const streamId = this.streamStartResponse?.streamId
-    if (!streamId) {
-      return ""
-    }
-
-    return this.gatewayUrl + `/gateway/ai/stream/${streamId}/stop`
+    return this.streamStartResponse?.stopUrl ?? ""
   }
 
   /**
@@ -197,6 +192,8 @@ export interface StreamStartResponse {
   statusUrl: string
   /** Data stream URL for SSE */
   dataUrl: string
+  /** Stop stream url  */
+  stopUrl: string
 }
 
 export interface WhipOfferResponse {
