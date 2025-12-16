@@ -48,12 +48,7 @@ export class StreamConfig {
    * Get Stream Start URL
    */
   getStreamStartUrl(): string | "" {
-    const streamId = this.streamStartResponse?.streamId
-    if (!streamId) {
-      return ""
-    }
-
-    return this.gatewayUrl + `/ai/stream/${streamId}/start`
+    return this.gatewayUrl + `/gateway/ai/stream/start`
   }
 
 
@@ -66,7 +61,7 @@ export class StreamConfig {
       return ""
     }
 
-    return this.gatewayUrl + `/ai/stream/${streamId}/stop`
+    return this.gatewayUrl + `/gateway/ai/stream/${streamId}/stop`
   }
 
   /**

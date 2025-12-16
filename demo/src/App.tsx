@@ -1,11 +1,11 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   StreamConfig,
-  useStreamPublisher,
+  useStream,
   useStreamViewer,
   useDataStream
 } from '@muxionlabs/byoc-sdk'
-import type { ViewerStartOptions, DataStreamEvent } from '@muxionlabs/byoc-sdk'
+import type { ViewerStartOptions, DataStreamEvent, StreamStartResponse } from '@muxionlabs/byoc-sdk'
 import '../../examples/simple-demo.css'
 import { VideoPreview, StreamControls, StreamInfo, ConsoleLog } from './components'
 import type { LogEntry, LogLevel, SavedWorkflow, TextOverlay, StatsOverlay } from './types'
@@ -36,7 +36,6 @@ const badgeByStatus: Record<string, string> = {
   disconnected: 'badge-disconnected',
   error: 'badge-error'
 }
-
 
 function App() {
   const [streamName] = useState(() => `stream-${Date.now()}`)
@@ -191,23 +190,28 @@ function App() {
   }, [startViewing, addLog, resetViewerRetry, setErrorBanner])
 
   const {
+    stream,
     isStreaming,
-    status: publisherStatus,
-    stats,
+    connectionStatus,
+    connectionStats,
     streamInfo,
     localStream,
-    error: publisherError,
+    error: streamError,
     start,
     stop,
-    updateStream
-  } = useStreamPublisher({
+    update
+  } = useStream({
     config: demoConfig,
     onStatusChange: (nextStatus) => {
       setErrorBanner(null)
-      addLog(`📡 Publisher status: ${nextStatus}`, 'info')
+      addLog(`📡 Stream status: ${nextStatus}`, 'info')
+    },
+    onStatsUpdate: (nextStats) => {
+      addLog(`📊 Stats updated: ${nextStats.bitrate} kbps @ ${nextStats.fps} fps`, 'info')
     },
     onStreamStarted: (response) => {
       addLog('✅ Stream started successfully', 'success')
+      demoConfig.updateFromStreamStartResponse(response)
       lastViewerUrlRef.current = response.whepUrl || ''
     },
     onStreamStopped: () => {
@@ -350,20 +354,27 @@ function App() {
   const handleStart = async () => {
     setErrorBanner(null)
     addLog('🎬 Starting stream...', 'info')
+    const startOptions = {
+      streamName,
+      streamId: streamName,
+      pipeline,
+      width: STREAM_WIDTH,
+      height: STREAM_HEIGHT,
+      fpsLimit: STREAM_FPS,
+      enableVideoIngress: true,
+      enableAudioIngress: true,
+      enableVideoEgress: true,
+      enableAudioEgress: true,
+      enableDataOutput: true,
+      customParams: prompts ? { prompts } : {}
+    }
+
     try {
-      await start({
-        streamName,
-        pipeline,
-        width: STREAM_WIDTH,
-        height: STREAM_HEIGHT,
-        fpsLimit: STREAM_FPS,
-        enableVideoIngress: true,
-        enableAudioIngress: true,
-        enableVideoEgress: true,
-        enableAudioEgress: true,
-        enableDataOutput: true,
-        customParams: prompts ? { prompts } : {}
-      })
+      const response = await start(startOptions)
+      if (response) {
+        demoConfig.updateFromStreamStartResponse(response)
+        await stream?.publish(startOptions)
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       setErrorBanner(message)
@@ -393,7 +404,7 @@ function App() {
     }
     addLog('🔄 Updating prompts...', 'info')
     try {
-      await updateStream({ params: { prompts: trimmed } })
+      await update({ params: { prompts: trimmed } })
       addLog('✅ Prompts updated successfully', 'success')
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -402,15 +413,15 @@ function App() {
     }
   }
 
-  const combinedError = errorBanner || publisherError?.message || viewerError?.message || null
-  const badgeClass = `badge ${badgeByStatus[publisherStatus] || 'badge-disconnected'}`
+  const combinedError = errorBanner || streamError?.message || viewerError?.message || null
+  const badgeClass = `badge ${badgeByStatus[connectionStatus] || 'badge-disconnected'}`
 
   const statsOverlay = useMemo<StatsOverlay>(() => ({
-    bitrate: stats ? `${stats.bitrate} kbps` : '0 kbps',
-    fps: stats ? `${stats.fps}` : '0',
-    resolution: stats?.resolution || '-',
-    latency: stats?.latency !== undefined ? `${stats.latency} ms` : 'N/A'
-  }), [stats])
+    bitrate: connectionStats ? `${connectionStats.bitrate} kbps` : '0 kbps',
+    fps: connectionStats ? `${connectionStats.fps}` : '0',
+    resolution: connectionStats?.resolution || '-',
+    latency: connectionStats?.latency !== undefined ? `${connectionStats.latency} ms` : 'N/A'
+  }), [connectionStats])
 
   return (
     <div className="container">
@@ -424,13 +435,13 @@ function App() {
           outputVideoRef={outputVideoRef}
           previewVideoRef={videoPreviewRef}
           stats={statsOverlay}
-          hasStats={Boolean(stats)}
+          hasStats={Boolean(connectionStats)}
           textOverlays={textOverlays}
         />
 
         <StreamControls
           badgeClass={badgeClass}
-          publisherStatus={publisherStatus}
+          streamStatus={connectionStatus}
           isStreaming={isStreaming}
           viewerStatus={viewerStatus}
           streamInfo={streamInfo}
