@@ -232,28 +232,6 @@ describe('DataStreamClient class', () => {
 
       expect(callback).toHaveBeenCalled()
     })
-
-    it('should handle multiple event listeners', () => {
-      const callback1 = vi.fn()
-      const callback2 = vi.fn()
-
-      client.on('connected', callback1)
-      client.on('connected', callback2)
-
-      // This would be triggered during connect
-      expect(callback1).not.toHaveBeenCalled()
-      expect(callback2).not.toHaveBeenCalled()
-    })
-
-    it('should remove event listeners', () => {
-      const callback = vi.fn()
-
-      client.on('connected', callback)
-      client.off('connected', callback)
-
-      // This would be triggered during connect
-      expect(callback).not.toHaveBeenCalled()
-    })
   })
 
   describe('data handling', () => {
@@ -311,6 +289,19 @@ describe('DataStreamClient class', () => {
       expect(logs[0].type).toBe('raw')
       expect(logs[0].data.raw).toBe('not-json')
       consoleSpy.mockRestore()
+    })
+
+    it('generates unique ids even when timestamps match', async () => {
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1700000000000)
+      await prepareConnection({ streamName: 'test-stream', maxLogs: 5 })
+
+      eventHandlers.onmessage?.({ data: '{"value":1}' } as any)
+      eventHandlers.onmessage?.({ data: '{"value":2}' } as any)
+
+      const logs = client.getLogs()
+      expect(logs[0].id).toBe('data-0')
+      expect(logs[1].id).toBe('data-1')
+      nowSpy.mockRestore()
     })
   })
 })

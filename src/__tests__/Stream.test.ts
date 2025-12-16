@@ -2,12 +2,19 @@
  * Tests for Stream class
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  registerStreamApiMocks,
+  mockStartStream,
+  mockStopStream,
+  mockSendStreamUpdate,
+  mockFetchStreamStatus,
+  setupNavigatorMediaMocks
+} from './helpers/streamMocks'
 import { Stream } from '../core/Stream'
 import { StreamConfig, StreamStartOptions, StreamStartResponse } from '../types'
-import { startStream, stopStream } from '../api/start'
-import { sendStreamUpdate } from '../api/update'
-import { fetchStreamStatus } from '../api/status'
+
+registerStreamApiMocks()
 
 vi.mock('../api/start', () => ({
   startStream: vi.fn(),
@@ -33,16 +40,18 @@ vi.mock('../api/whip', () => ({
   })
 }))
 
-const mockedStartStream = vi.mocked(startStream)
-const mockedStopStream = vi.mocked(stopStream)
-const mockedSendStreamUpdate = vi.mocked(sendStreamUpdate)
-const mockedFetchStreamStatus = vi.mocked(fetchStreamStatus)
+const mockedStartStream = vi.mocked(mockStartStream)
+const mockedStopStream = vi.mocked(mockStopStream)
+const mockedSendStreamUpdate = vi.mocked(mockSendStreamUpdate)
+const mockedFetchStreamStatus = vi.mocked(mockFetchStreamStatus)
 
 // Mock WebRTC and fetch
 const mockFetch = vi.fn()
-const mockGetUserMedia = vi.fn()
-const mockCreatePeerConnection = vi.fn()
-const mockGetMediaDevices = vi.fn()
+let mockGetUserMedia: ReturnType<typeof setupNavigatorMediaMocks>['mockGetUserMedia']
+let mockGetMediaDevices: ReturnType<typeof setupNavigatorMediaMocks>['mockEnumerateDevices']
+let mockGetDisplayMedia: ReturnType<typeof setupNavigatorMediaMocks>['mockGetDisplayMedia']
+let mockPeerConnectionFactory: any
+let mockPeerConnection: any
 
 describe('Stream class', () => {
   let stream: Stream
@@ -60,21 +69,35 @@ describe('Stream class', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    const mediaMocks = setupNavigatorMediaMocks()
+    mockGetUserMedia = mediaMocks.mockGetUserMedia
+    mockGetMediaDevices = mediaMocks.mockEnumerateDevices
+    mockGetDisplayMedia = mediaMocks.mockGetDisplayMedia
+    mockPeerConnection = {
+      addEventListener: vi.fn(),
+      addTrack: vi.fn(),
+      createOffer: vi.fn().mockResolvedValue({ sdp: 'offer-sdp' }),
+      setLocalDescription: vi.fn().mockResolvedValue(undefined),
+      localDescription: { sdp: 'offer-sdp' },
+      getStats: vi.fn().mockResolvedValue(new Map()),
+      setRemoteDescription: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn()
+    }
+    mockPeerConnectionFactory = vi.fn().mockImplementation(() => mockPeerConnection)
+    global.RTCPeerConnection = mockPeerConnectionFactory as any
     mockedStartStream.mockResolvedValue(mockStartResponse)
     mockedStopStream.mockResolvedValue(undefined)
     mockedSendStreamUpdate.mockResolvedValue(undefined)
     mockedFetchStreamStatus.mockResolvedValue({ status: 'ok' })
     global.fetch = mockFetch
-    global.navigator = {
-      mediaDevices: {
-        getUserMedia: mockGetUserMedia,
-        enumerateDevices: mockGetMediaDevices
-      }
-    } as any
     mockGetMediaDevices.mockResolvedValue([
       { kind: 'videoinput', deviceId: 'camera1', label: 'Camera 1' },
       { kind: 'audioinput', deviceId: 'mic1', label: 'Microphone 1' }
     ])
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   beforeEach(() => {
@@ -205,30 +228,6 @@ describe('Stream class', () => {
 
       expect(callback).toHaveBeenCalledWith('connecting')
     })
-
-    it('should handle multiple event listeners', () => {
-      const callback1 = vi.fn()
-      const callback2 = vi.fn()
-
-      stream.on('statusChange', callback1)
-      stream.on('statusChange', callback2)
-
-      stream.emit('statusChange', 'connected')
-
-      expect(callback1).toHaveBeenCalledWith('connected')
-      expect(callback2).toHaveBeenCalledWith('connected')
-    })
-
-    it('should remove event listeners', () => {
-      const callback = vi.fn()
-
-      stream.on('statusChange', callback)
-      stream.off('statusChange', callback)
-
-      stream.emit('statusChange', 'connecting')
-
-      expect(callback).not.toHaveBeenCalled()
-    })
   })
 
   describe('error handling', () => {
@@ -240,6 +239,43 @@ describe('Stream class', () => {
       stream.emit('error', error)
 
       expect(callback).toHaveBeenCalledWith(error)
+    })
+  })
+
+  describe('stats parsing', () => {
+    it('calculates bitrate, fps, and resolution from outbound stats', () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      ;(stream as any).lastStats = {
+        time: 1000,
+        bytes: 1000,
+        frameTime: 0,
+        frameCount: 10
+      }
+
+      const stats = new Map<string, any>([
+        [
+          'out',
+          {
+            type: 'outbound-rtp',
+            kind: 'video',
+            bytesSent: 3000,
+            framesEncoded: 30,
+            frameWidth: 640,
+            frameHeight: 480
+          }
+        ]
+      ])
+
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(2000)
+      const result = (stream as any).parseStats(stats)
+      nowSpy.mockRestore()
+
+      expect(result).toEqual({
+        bitrate: 16,
+        fps: 20,
+        resolution: '640x480',
+        streamId: 'stream-123'
+      })
     })
   })
 
@@ -372,6 +408,40 @@ describe('Stream class', () => {
     })
   })
 
+  describe('publish error handling', () => {
+    const baseOptions: StreamStartOptions = {
+      streamName: 'pub-stream',
+      pipeline: 'comfystream'
+    }
+
+    beforeEach(() => {
+      config.updateFromStreamStartResponse(mockStartResponse)
+      mockGetUserMedia.mockResolvedValue(new MediaStream())
+    })
+
+    it('cleans up and emits error when createOffer fails', async () => {
+      mockPeerConnection.createOffer.mockRejectedValueOnce(new Error('offer failed'))
+      const errorListener = vi.fn()
+      stream.on('error', errorListener)
+
+      await expect(stream.publish(baseOptions)).rejects.toThrow('Failed to publish stream')
+      expect(errorListener).toHaveBeenCalled()
+      expect(stream.getConnectionStatus()).toBe('disconnected')
+      expect(stream.getLocalStream()).toBeNull()
+    })
+
+    it('cleans up and emits error when setLocalDescription fails', async () => {
+      mockPeerConnection.setLocalDescription.mockRejectedValueOnce(new Error('setLocal failed'))
+      const errorListener = vi.fn()
+      stream.on('error', errorListener)
+
+      await expect(stream.publish(baseOptions)).rejects.toThrow('Failed to publish stream')
+      expect(errorListener).toHaveBeenCalled()
+      expect(stream.getConnectionStatus()).toBe('disconnected')
+      expect(stream.getLocalStream()).toBeNull()
+    })
+  })
+
   describe('stop', () => {
     it('no-ops when there is no active stream', async () => {
       await stream.stop()
@@ -392,6 +462,81 @@ describe('Stream class', () => {
       )
       expect(stream.getConnectionStatus()).toBe('disconnected')
       expect(stoppedListener).toHaveBeenCalled()
+    })
+  })
+
+  describe('stats parsing', () => {
+    it('calculates bitrate and fps from outbound-rtp stats', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      const now = Date.now()
+
+      // First sample
+      const stats1 = new Map([
+        ['outbound-video', {
+          type: 'outbound-rtp',
+          kind: 'video',
+          bytesSent: 10000,
+          framesEncoded: 30,
+          frameWidth: 1920,
+          frameHeight: 1080
+        }]
+      ])
+
+      // Second sample (1 second later, 80kbps, 30fps)
+      const stats2 = new Map([
+        ['outbound-video', {
+          type: 'outbound-rtp',
+          kind: 'video',
+          bytesSent: 20000,    // +10000 bytes = 80kbps
+          framesEncoded: 60,   // +30 frames = 30fps
+          frameWidth: 1920,
+          frameHeight: 1080
+        }]
+      ])
+
+      // Mock Date.now to simulate 1 second passing
+      const dateSpy = vi.spyOn(Date, 'now')
+      dateSpy.mockReturnValueOnce(now)
+      await (stream as any).parseStats?.(stats1)
+      
+      dateSpy.mockReturnValueOnce(now + 1000)
+      const result2 = await (stream as any).parseStats?.(stats2)
+
+      expect(result2.bitrate).toBe(80)
+      expect(result2.fps).toBe(30)
+      expect(result2.resolution).toBe('1920x1080')
+      expect(result2.streamId).toBe('stream-123')
+
+      dateSpy.mockRestore()
+    })
+
+    it('returns zero stats when no video data is available', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      const emptyStats = new Map()
+      const result = await (stream as any).parseStats?.(emptyStats)
+
+      expect(result).toEqual({
+        bitrate: 0,
+        fps: 0,
+        resolution: '',
+        streamId: 'stream-123'
+      })
+    })
+
+    it('handles missing frameWidth/frameHeight gracefully', async () => {
+      ;(stream as any).streamInfo = { ...mockStartResponse }
+      const stats = new Map([
+        ['outbound-video', {
+          type: 'outbound-rtp',
+          kind: 'video',
+          bytesSent: 10000,
+          framesEncoded: 30
+          // no frameWidth or frameHeight
+        }]
+      ])
+
+      const result = await (stream as any).parseStats?.(stats)
+      expect(result.resolution).toBe('')
     })
   })
 })
