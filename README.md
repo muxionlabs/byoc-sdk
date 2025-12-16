@@ -8,7 +8,7 @@ Production-quality SDK for Livepeer BYOC video streaming with AI-powered insight
 - 🤖 **AI-ready** pipelines with custom params/state updates
 - 📊 **SSE data streaming** for stats and text insights
 - 📱 **Media device management** with permissions and device lists
-- ⚛️ **React hooks** for publisher, viewer, and data flows
+- ⚛️ **React hooks** for stream, viewer, and data flows
 - 📦 **TypeScript-first** exports with ESM/CJS builds
 - 🔄 **Robust retries** plus connection monitoring and stats
 
@@ -27,13 +27,13 @@ The `serve:examples` script spins up `http-server` against the repo root and imm
 ## Example Preview
 
 - `examples/html-demo.html` is the only bundled example. It wires the SDK to the browser camera, logs events, and renders stats + config controls.
-- Adjust the `prompts` input or the `StreamPublisher` start options inside that file to exercise different AI pipelines or resolutions.
-- Use the `StreamPublisher`, `StreamViewer`, and `DataStreamClient` snippets below as the foundation for your own pages.
+- Adjust the `prompts` input or the `Stream` start options inside that file to exercise different AI pipelines or resolutions.
+- Use the `Stream`, `StreamViewer`, and `DataStreamClient` snippets below as the foundation for your own pages.
 
 ## Integrating the SDK
 
 ```ts
-import { StreamPublisher, StreamConfig } from '@muxionlabs/byoc-sdk'
+import { Stream, StreamConfig } from '@muxionlabs/byoc-sdk'
 
 // Define your gateway base URL
 const GATEWAY_URL = 'https://your-gateway.example.com:8088'
@@ -49,9 +49,9 @@ const config = new StreamConfig({
   defaultPipeline: 'comfystream'
 })
 
-const publisher = new StreamPublisher(config)
+const stream = new Stream(config)
 
-await publisher.start({
+await stream.start({
   streamName: 'my-stream',
   pipeline: 'comfystream',
   width: 1280,
@@ -63,7 +63,7 @@ await publisher.start({
   customParams: { prompts: 'Analyze this frame' }
 })
 
-await publisher.updateStream({
+await stream.updateStream({
   params: { prompts: '{"1":{"inputs":{"images":["3",0]},"class_type":"SaveTensor"}}' },
   // Width/height changes require restarting the stream, so omit them here.
 })

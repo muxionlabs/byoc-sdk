@@ -1,5 +1,5 @@
 /**
- * StreamPublisher - Handles WebRTC stream publishing via WHIP
+ * Stream - Handles WebRTC stream publishing via WHIP
  */
 
 import {
@@ -220,7 +220,7 @@ export class Stream extends EventEmitter<StreamEventMap> {
 
     if (removedFields.length > 0) {
       console.warn(
-        `[StreamPublisher] Ignoring immutable stream update fields: ${removedFields.join(
+        `[Stream] Ignoring immutable stream update fields: ${removedFields.join(
           ', '
         )}. Restart the stream to change resolution.`
       )
@@ -347,7 +347,7 @@ export class Stream extends EventEmitter<StreamEventMap> {
 
     // Monitor connection state
     pc.addEventListener('connectionstatechange', () => {
-      console.log(`Publisher connection state: ${pc.connectionState}`)
+      console.log(`Stream connection state: ${pc.connectionState}`)
       
       if (pc.connectionState === 'connected') {
         this.setStatus('connected')

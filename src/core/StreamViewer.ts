@@ -68,7 +68,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
       const whepUrl = options.whepUrl
 
       if (!whepUrl) {
-        throw new StreamError('No WHEP URL provided. Pass the whepUrl from StreamPublisher.getStreamInfo()')
+        throw new StreamError('No WHEP URL provided. Pass the whepUrl from Stream.getStreamInfo()')
       }
 
       // Create peer connection
