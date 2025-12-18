@@ -14,12 +14,12 @@
 **Tech Stack**: TypeScript, WebRTC (WHIP/WHEP), React (optional), Server-Sent Events (SSE)
 
 **Core Flow**: 
-1. **Publish**: Device Camera/Mic → `StreamPublisher` → WHIP Endpoint → AI Pipeline
+1. **Publish**: Device Camera/Mic → `Stream` → WHIP Endpoint → AI Pipeline
 2. **View**: AI Pipeline Output → WHEP Endpoint → `StreamViewer` → Video Element
 3. **Data**: AI Pipeline Metadata → SSE Endpoint → `DataStreamClient` → App UI
 
 **Key Files to Know**:
-- `src/core/StreamPublisher.ts` - Handles media capture and WHIP publishing
+- `src/core/Stream.ts` - Handles media capture and WHIP publishing
 - `src/core/StreamViewer.ts` - Handles WHEP playback
 - `src/core/DataStreamClient.ts` - Handles real-time AI data (SSE)
 - `src/react/` - React hooks for all core components
@@ -65,7 +65,7 @@ The SDK is built around standalone classes that can be used in any JavaScript en
 
 ```
 ┌─────────────────┐       ┌─────────────────┐
-│ StreamPublisher │ ────▶ │  WHIP Endpoint  │
+│ Stream          │ ────▶ │  WHIP Endpoint  │
 └─────────────────┘       └─────────────────┘
         │
         ▼
@@ -84,7 +84,7 @@ The SDK is built around standalone classes that can be used in any JavaScript en
 
 Wrappers around core components to manage lifecycle and state in React apps.
 
-- `useStreamPublisher`: Manages `StreamPublisher` instance, device lists, and connection state.
+- `useStream`: Manages `Stream` instance, device lists, and connection state.
 - `useStreamViewer`: Manages `StreamViewer` and video element refs.
 - `useDataStream`: Subscribes to AI events and updates state.
 
@@ -95,11 +95,11 @@ Wrappers around core components to manage lifecycle and state in React apps.
 ### Source (`src/`)
 
 - **`core/`**: Main logic.
-    - `StreamPublisher.ts`: Manages `RTCPeerConnection` for sending video. Handles ICE restarts, device switching, and bandwidth management.
+    - `Stream.ts`: Manages `RTCPeerConnection` for sending video. Handles ICE restarts, device switching, and bandwidth management.
     - `StreamViewer.ts`: Manages `RTCPeerConnection` for receiving video.
     - `DataStreamClient.ts`: `EventSource` wrapper for AI data.
 - **`react/`**: React hooks.
-    - `useStreamPublisher.ts`, `useStreamViewer.ts`, `useDataStream.ts`.
+    - `useStream.ts`, `useStreamViewer.ts`, `useDataStream.ts`.
 - **`api/`**: Internal API helpers (fetching SDPs, etc.).
 - **`utils/`**: Shared utilities (logging, error handling).
 
@@ -155,6 +155,11 @@ config.getStatusUrl('stream-123')
 
 config.getDataUrl('my-stream')
 // → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
+
+// startStream now returns stopUrl; StreamConfig surfaces it via getStreamStopUrl()
+config.updateFromStreamStartResponse(startResponse)
+config.getStreamStopUrl()
+// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/stop
 ```
 
 **Key Design Principle**: Gateway returns full URLs for data-plane endpoints (like `whepUrl`). The SDK uses these directly without additional construction. Control-plane URLs (status, update, stop) are derived from the gateway base URL using StreamConfig helpers.

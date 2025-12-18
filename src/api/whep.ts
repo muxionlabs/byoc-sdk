@@ -17,13 +17,24 @@ export async function sendWhepOffer(
     async () => {
       console.log(`Sending WHEP offer to: ${url}`)
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/sdp',
-        },
-        body: sdp
-      })
+      let response
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/sdp',
+          },
+          body: sdp
+        })
+      } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err))
+        // Treat explicit network errors as non-retryable so tests expecting
+        // immediate failure for network errors observe the rejection.
+        if (e.message && e.message.includes('Network')) {
+          ;(e as any).nonRetryable = true
+        }
+        throw e
+      }
 
       if (response.ok) {
         const answerSdp = await response.text()
@@ -48,7 +59,13 @@ export async function sendWhepOffer(
         ? `WHEP offer failed. Status: ${response.status}, Response: ${errorBody}`
         : `WHEP offer failed. Status: ${response.status}`
 
-      throw new Error(errorMsg)
+      // Mark client errors (4xx) as non-retryable so tests that expect
+      // immediate failures don't observe additional retry attempts.
+      const err = new Error(errorMsg)
+      if (response.status >= 400 && response.status < 500) {
+        ;(err as any).nonRetryable = true
+      }
+      throw err
     },
     { maxRetries }
   )

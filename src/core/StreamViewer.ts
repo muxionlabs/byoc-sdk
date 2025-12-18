@@ -35,7 +35,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
   /**
    * Get current connection status
    */
-  getStatus(): ConnectionStatus {
+  getConnectionStatus(): ConnectionStatus {
     return this.connectionStatus
   }
 
@@ -68,7 +68,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
       const whepUrl = options.whepUrl
 
       if (!whepUrl) {
-        throw new StreamError('No WHEP URL provided. Pass the whepUrl from StreamPublisher.getStreamInfo()')
+        throw new StreamError('No WHEP URL provided. Pass the whepUrl from Stream.getStreamInfo()')
       }
 
       // Create peer connection
@@ -100,7 +100,7 @@ export class StreamViewer extends EventEmitter<StreamViewerEventMap> {
       this.setStatus('error')
       const streamError = error instanceof StreamError
         ? error
-        : new ConnectionError('Failed to start viewing', error)
+        : new ConnectionError(`Failed to start viewing: ${error instanceof Error ? error.message : String(error)}`, error)
       this.emit('error', streamError)
       await this.cleanup()
       throw streamError

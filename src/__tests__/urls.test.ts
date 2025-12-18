@@ -1,129 +1,206 @@
 /**
- * Tests for URL utilities
+ * Tests for StreamConfig URL construction methods
  */
 
 import { describe, it, expect } from 'vitest'
-import {
-  generateStreamId,
-  constructWhipUrl,
-  constructWhepUrl,
-  constructDataStreamUrl
-} from '../utils/urls'
- 
-describe('URL utilities', () => {
-  describe('generateStreamId', () => {
-    it('should generate a unique stream ID', () => {
-      const id1 = generateStreamId()
-      const id2 = generateStreamId()
+import { StreamConfig, StreamStartResponse } from '../types'
 
-      expect(id1).toMatch(/^stream-[a-z0-9]+-[a-z0-9]+$/)
-      expect(id2).toMatch(/^stream-[a-z0-9]+-[a-z0-9]+$/)
-      expect(id1).not.toBe(id2)
+describe('StreamConfig URL construction', () => {
+  describe('getStreamStartUrl', () => {
+    it('should return base start URL when no stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const startUrl = config.getStreamStartUrl()
+      
+      expect(startUrl).toBe('https://example.com:8088/gateway/ai/stream/start')
+    })
+
+    it('should construct start URL from stream ID', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const mockResponse: StreamStartResponse = {
+        whipUrl: 'whip-url',
+        whepUrl: 'whep-url',
+        rtmpUrl: 'rtmp-url',
+        rtmpOutputUrl: 'rtmp-output-url',
+        updateUrl: 'update-url',
+        statusUrl: 'status-url',
+        dataUrl: 'data-url',
+        stopUrl: 'stop-url',
+        streamId: 'test-stream-123'
+      }
+      
+      config.updateFromStreamStartResponse(mockResponse)
+      const startUrl = config.getStreamStartUrl()
+      
+      expect(startUrl).toBe('https://example.com:8088/gateway/ai/stream/start')
+    })
+
+    it('should handle gateway URL with trailing slash', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088/'
+      })
+      
+      const mockResponse: StreamStartResponse = {
+        whipUrl: 'whip-url',
+        whepUrl: 'whep-url',
+        rtmpUrl: 'rtmp-url',
+        rtmpOutputUrl: 'rtmp-output-url',
+        updateUrl: 'update-url',
+        statusUrl: 'status-url',
+        dataUrl: 'data-url',
+        stopUrl: 'stop-url',
+        streamId: 'my-stream'
+      }
+      
+      config.updateFromStreamStartResponse(mockResponse)
+      const startUrl = config.getStreamStartUrl()
+      
+      expect(startUrl).toBe('https://example.com:8088/gateway/ai/stream/start')
     })
   })
 
-  describe('constructWhipUrl', () => {
-    it('should construct basic WHIP URL', () => {
-      const url = constructWhipUrl(
-        'https://example.com/gateway/ai/stream/start',
-        'comfystream'
-      )
-
-      expect(url).toContain('pipeline=comfystream')
+  describe('getStreamStopUrl', () => {
+    it('should return empty string when no stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const stopUrl = config.getStreamStopUrl()
+      
+      expect(stopUrl).toBe('')
     })
 
-    it('should include resolution parameters', () => {
-      const url = constructWhipUrl(
-        'https://example.com/gateway/ai/stream/start',
-        'comfystream',
-        1280,
-        720
-      )
-
-      expect(url).toContain('params=')
-      expect(decodeURIComponent(url)).toContain('"width":1280')
-      expect(decodeURIComponent(url)).toContain('"height":720')
-    })
-
-    it('should include custom parameters', () => {
-      const url = constructWhipUrl(
-        'https://example.com/gateway/ai/stream/start',
-        'comfystream',
-        undefined,
-        undefined,
-        { prompts: 'test prompt', threshold: 0.5 }
-      )
-
-      // URL uses + for spaces, so we need to handle that
-      const decodedUrl = decodeURIComponent(url).replace(/\+/g, ' ')
-      expect(decodedUrl).toContain('"prompts":"test prompt"')
-      expect(decodedUrl).toContain('"threshold":0.5')
-    })
-
-    it('should include streamId if provided', () => {
-      const url = constructWhipUrl(
-        'https://example.com/gateway/ai/stream/start',
-        'comfystream',
-        undefined,
-        undefined,
-        undefined,
-        'stream-123'
-      )
-
-      expect(url).toContain('streamId=stream-123')
+    it('should construct stop URL from stream ID', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const mockResponse: StreamStartResponse = {
+        whipUrl: 'whip-url',
+        whepUrl: 'whep-url',
+        rtmpUrl: 'rtmp-url',
+        rtmpOutputUrl: 'rtmp-output-url',
+        updateUrl: 'update-url',
+        statusUrl: 'status-url',
+        dataUrl: 'data-url',
+        stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
+        streamId: 'test-stream-456'
+      }
+      
+      config.updateFromStreamStartResponse(mockResponse)
+      const stopUrl = config.getStreamStopUrl()
+      
+      expect(stopUrl).toBe('https://example.com:8088/gateway/ai/stream/test-stream-456/stop')
     })
   })
 
-  describe('constructWhepUrl', () => {
-    it('should return base URL when no playback URL provided', () => {
-      const url = constructWhepUrl('https://example.com/mediamtx')
-      expect(url).toBe('https://example.com/mediamtx')
+  describe('getWhipUrl', () => {
+    it('should return empty string when no stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const whipUrl = config.getWhipUrl()
+      
+      expect(whipUrl).toBe('')
     })
 
-    it('should return playback URL when it is a full URL', () => {
-      const playbackUrl = 'https://example.com/stream/abc/whep'
-      const url = constructWhepUrl('https://example.com/mediamtx', playbackUrl)
-      expect(url).toBe(playbackUrl)
-    })
-
-    it('should correctly resolve relative playback URL paths', () => {
-      const whepBaseUrl = 'https://example.com/mediamtx'
-      const playbackUrl = '/stream/xyz/whep'
-      const url = constructWhepUrl(whepBaseUrl, playbackUrl)
-      expect(url).toBe('https://example.com/stream/xyz/whep')
-    })
-
-    it('should handle relative paths with base URL having trailing slash', () => {
-      const whepBaseUrl = 'https://example.com/mediamtx/'
-      const playbackUrl = '/stream/abc-123/whep'
-      const url = constructWhepUrl(whepBaseUrl, playbackUrl)
-      expect(url).toBe('https://example.com/stream/abc-123/whep')
-    })
-
-    it('should handle relative paths without leading slash', () => {
-      const whepBaseUrl = 'https://example.com/mediamtx'
-      const playbackUrl = 'stream/xyz/whep'
-      const url = constructWhepUrl(whepBaseUrl, playbackUrl)
-      expect(url).toBe('https://example.com/stream/xyz/whep')
+    it('should return WHIP URL from stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const mockResponse: StreamStartResponse = {
+        whipUrl: 'https://example.com/whip/stream-123',
+        whepUrl: 'whep-url',
+        rtmpUrl: 'rtmp-url',
+        rtmpOutputUrl: 'rtmp-output-url',
+        updateUrl: 'update-url',
+        statusUrl: 'status-url',
+        dataUrl: 'data-url',
+        stopUrl: 'stop-url',
+        streamId: 'stream-123'
+      }
+      
+      config.updateFromStreamStartResponse(mockResponse)
+      const whipUrl = config.getWhipUrl()
+      
+      expect(whipUrl).toBe('https://example.com/whip/stream-123')
     })
   })
 
-  describe('constructDataStreamUrl', () => {
-    it('should construct data stream URL', () => {
-      const url = constructDataStreamUrl(
-        'https://example.com/gateway/live/video-to-video',
-        'my-stream'
-      )
-
-      expect(url).toBe('https://example.com/gateway/live/video-to-video/my-stream/data')
+  describe('getWhepUrl', () => {
+    it('should return empty string when no stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const whepUrl = config.getWhepUrl()
+      
+      expect(whepUrl).toBe('')
     })
 
-    it('should use custom URL if provided', () => {
-      const customUrl = 'https://custom.com/data'
-      const url = constructDataStreamUrl('https://example.com/gateway/live/video-to-video', 'my-stream', customUrl)
+    it('should return WHEP URL from stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const mockResponse: StreamStartResponse = {
+        whipUrl: 'whip-url',
+        whepUrl: 'https://example.com/whep/stream-456',
+        rtmpUrl: 'rtmp-url',
+        rtmpOutputUrl: 'rtmp-output-url',
+        updateUrl: 'update-url',
+        statusUrl: 'status-url',
+        dataUrl: 'data-url',
+        stopUrl: 'stop-url',
+        streamId: 'stream-456'
+      }
+      
+      config.updateFromStreamStartResponse(mockResponse)
+      const whepUrl = config.getWhepUrl()
+      
+      expect(whepUrl).toBe('https://example.com/whep/stream-456')
+    })
+  })
 
-      expect(url).toBe(customUrl)
+  describe('getStatusUrl', () => {
+    it('should return empty string when no stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const statusUrl = config.getStatusUrl()
+      
+      expect(statusUrl).toBe('')
+    })
+
+    it('should return status URL from stream start response', () => {
+      const config = new StreamConfig({
+        gatewayUrl: 'https://example.com:8088'
+      })
+      
+      const mockResponse: StreamStartResponse = {
+        whipUrl: 'whip-url',
+        whepUrl: 'whep-url',
+        rtmpUrl: 'rtmp-url',
+        rtmpOutputUrl: 'rtmp-output-url',
+        updateUrl: 'update-url',
+        statusUrl: 'https://example.com/status/stream-789',
+        dataUrl: 'data-url',
+        stopUrl: 'stop-url',
+        streamId: 'stream-789'
+      }
+      
+      config.updateFromStreamStartResponse(mockResponse)
+      const statusUrl = config.getStatusUrl()
+      
+      expect(statusUrl).toBe('https://example.com/status/stream-789')
     })
   })
 })
-

@@ -1,54 +1,90 @@
 /**
- * Tests for DataStreamClient URL construction
+ * Tests for StreamConfig data URL construction
  * Verifies fix for Issue #16: https://github.com/muxionlabs/byoc-sdk/issues/16
  */
 
 import { describe, it, expect } from 'vitest'
-import { StreamConfig } from '../types'
+import { StreamConfig, StreamStartResponse } from '../types'
 
-describe('DataStreamClient URL construction (Issue #16)', () => {
-  it('should construct correct data URL with default path', () => {
+describe('StreamConfig data URL construction (Issue #16)', () => {
+  it('should return empty string when no stream start response', () => {
     const config = new StreamConfig({
       gatewayUrl: 'https://gateway-usa.muxion.video/g'
     })
     
-    const dataUrl = config.getDataUrl('demo-stream-f0b2a44e')
+    const dataUrl = config.getDataUrl()
     
-    // Should match the correct format from Issue #16
+    expect(dataUrl).toBe('')
+  })
+
+  it('should return data URL from stream start response', () => {
+    const config = new StreamConfig({
+      gatewayUrl: 'https://gateway-usa.muxion.video/g'
+    })
+    
+    const mockResponse: StreamStartResponse = {
+      whipUrl: 'whip-url',
+      whepUrl: 'whep-url',
+      rtmpUrl: 'rtmp-url',
+      rtmpOutputUrl: 'rtmp-output-url',
+      updateUrl: 'update-url',
+      statusUrl: 'status-url',
+      dataUrl: 'https://gateway-usa.muxion.video/g/gateway/ai/stream/demo-stream-f0b2a44e/data',
+      stopUrl: 'stop-url',
+      streamId: 'demo-stream-f0b2a44e'
+    }
+    
+    config.updateFromStreamStartResponse(mockResponse)
+    const dataUrl = config.getDataUrl()
+    
     expect(dataUrl).toBe('https://gateway-usa.muxion.video/g/gateway/ai/stream/demo-stream-f0b2a44e/data')
   })
 
-  it('should construct correct data URL with trailing slash in gateway', () => {
+  it('should handle gateway URL with trailing slash', () => {
     const config = new StreamConfig({
       gatewayUrl: 'https://gateway.example.com:8088/'
     })
     
-    const dataUrl = config.getDataUrl('my-stream')
+    const mockResponse: StreamStartResponse = {
+      whipUrl: 'whip-url',
+      whepUrl: 'whep-url',
+      rtmpUrl: 'rtmp-url',
+      rtmpOutputUrl: 'rtmp-output-url',
+      updateUrl: 'update-url',
+      statusUrl: 'status-url',
+      dataUrl: 'https://gateway.example.com:8088/gateway/ai/stream/my-stream/data',
+      stopUrl: 'stop-url',
+      streamId: 'my-stream'
+    }
+    
+    config.updateFromStreamStartResponse(mockResponse)
+    const dataUrl = config.getDataUrl()
     
     expect(dataUrl).toBe('https://gateway.example.com:8088/gateway/ai/stream/my-stream/data')
     expect(dataUrl).not.toContain('/live/video-to-video/')  // Old incorrect path
     expect(dataUrl).toContain('/gateway/ai/stream/')        // Correct path
   })
 
-  it('should allow custom data path override', () => {
-    const config = new StreamConfig({
-      gatewayUrl: 'https://gateway.example.com:8088',
-      dataPath: '/custom/path/'
-    })
-    
-    const dataUrl = config.getDataUrl('test-stream')
-    
-    expect(dataUrl).toBe('https://gateway.example.com:8088/custom/path/test-stream/data')
-  })
-
-  it('should respect custom data URL parameter', () => {
+  it('should return empty string when dataUrl is empty in response', () => {
     const config = new StreamConfig({
       gatewayUrl: 'https://gateway.example.com:8088'
     })
     
-    const customUrl = 'https://custom.example.com/data/stream/xyz'
-    const dataUrl = config.getDataUrl('my-stream', customUrl)
+    const mockResponse: StreamStartResponse = {
+      whipUrl: 'whip-url',
+      whepUrl: 'whep-url',
+      rtmpUrl: 'rtmp-url',
+      rtmpOutputUrl: 'rtmp-output-url',
+      updateUrl: 'update-url',
+      statusUrl: 'status-url',
+      dataUrl: '',
+      stopUrl: '',
+      streamId: 'test-stream'
+    }
     
-    expect(dataUrl).toBe(customUrl)
+    config.updateFromStreamStartResponse(mockResponse)
+    const dataUrl = config.getDataUrl()
+    
+    expect(dataUrl).toBe('')
   })
 })
