@@ -13,7 +13,7 @@ describe('StreamConfig URL helpers', () => {
       })
       const result = config.getStreamStartUrl()
 
-      expect(result).toBe('https://example.com:8088/gateway/ai/stream/start')
+      expect(result).toBe('https://example.com:8088/process/stream/start')
       const pathPart = result.split('://')[1]
       expect(pathPart).not.toContain('//')
     })
@@ -24,7 +24,7 @@ describe('StreamConfig URL helpers', () => {
       })
       const result = config.getStreamStartUrl()
 
-      expect(result).toBe('https://example.com/gateway/ai/stream/start')
+      expect(result).toBe('https://example.com/process/stream/start')
     })
   })
 
@@ -43,14 +43,14 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
-        stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
+        stopUrl: 'https://example.com:8088/process/stream/test-stream-456/stop',
         streamId
       }
 
       config.updateFromStreamStartResponse(mockResponse)
       const result = config.getStreamStopUrl()
 
-      expect(result).toBe('https://example.com:8088/gateway/ai/stream/test-stream-456/stop')
+      expect(result).toBe('https://example.com:8088/process/stream/test-stream-456/stop')
       const pathPart = result.split('://')[1]
       expect(pathPart).not.toContain('//')
     })
@@ -215,14 +215,14 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
-        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop',
+        stopUrl: 'https://example.com:8088/process/stream/stream_test-123_abc/stop',
         streamId: 'stream_test-123_abc'
       }
 
       config.updateFromStreamStartResponse(mockResponse)
 
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
-      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
+      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/process/stream/stream_test-123_abc/stop')
     })
 
     it('handles streamId with alphanumeric characters', () => {
@@ -238,14 +238,14 @@ describe('StreamConfig URL helpers', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
-        stopUrl: 'https://example.com:8088/gateway/ai/stream/abc123def456/stop',
+        stopUrl: 'https://example.com:8088/process/stream/abc123def456/stop',
         streamId: 'abc123def456'
       }
 
       config.updateFromStreamStartResponse(mockResponse)
 
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
-      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/gateway/ai/stream/abc123def456/stop')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
+      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/process/stream/abc123def456/stop')
     })
   })
 })

@@ -48,7 +48,7 @@ export class StreamConfig {
    * Get Stream Start URL
    */
   getStreamStartUrl(): string | "" {
-    return this.gatewayUrl + `/gateway/ai/stream/start`
+    return this.gatewayUrl + `/process/stream/start`
   }
 
 
