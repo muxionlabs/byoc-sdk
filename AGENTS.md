@@ -129,10 +129,6 @@ const config = new StreamConfig({
 const config = new StreamConfig({
   gatewayUrl: 'https://gateway.example.com:8088',
   defaultPipeline: 'comfystream',
-  // Optional: customize paths (defaults provided)
-  whipPath: '/gateway/ai/stream/start',  // default
-  whepPath: '/mediamtx',                  // default
-  dataPath: '/gateway/ai/stream/',        // default
   iceServers: [...]                       // custom ICE servers
 })
 ```
@@ -148,18 +144,18 @@ const config = new StreamConfig({
 ```typescript
 // StreamConfig builds control-plane URLs from base gateway URL + paths
 config.getWhipUrl({ pipeline: 'comfystream', width: 1280, height: 720 })
-// → https://gateway.example.com:8088/gateway/ai/stream/start?pipeline=comfystream&width=1280&height=720
+// → https://gateway.example.com:8088/process/stream/start?pipeline=comfystream&width=1280&height=720
 
 config.getStatusUrl('stream-123')
-// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/status
+// → https://gateway.example.com:8088/process/stream/stream-123/status
 
 config.getDataUrl('my-stream')
-// → https://gateway.example.com:8088/gateway/ai/stream/my-stream/data
+// → https://gateway.example.com:8088/process/stream/my-stream/data
 
 // startStream now returns stopUrl; StreamConfig surfaces it via getStreamStopUrl()
 config.updateFromStreamStartResponse(startResponse)
 config.getStreamStopUrl()
-// → https://gateway.example.com:8088/gateway/ai/stream/stream-123/stop
+// → https://gateway.example.com:8088/process/stream/stream-123/stop
 ```
 
 **Key Design Principle**: Gateway returns full URLs for data-plane endpoints (like `whepUrl`). The SDK uses these directly without additional construction. Control-plane URLs (status, update, stop) are derived from the gateway base URL using StreamConfig helpers.

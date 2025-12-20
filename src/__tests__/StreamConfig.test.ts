@@ -64,7 +64,7 @@ describe('StreamConfig class', () => {
         updateUrl: 'https://example.com/update/stream-123',
         statusUrl: 'https://example.com/status/stream-123',
         dataUrl: 'https://example.com/data/stream-123',
-        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream-123/stop',
+        stopUrl: 'https://example.com:8088/process/stream/stream-123/stop',
         streamId: 'stream-123'
       }
 
@@ -74,8 +74,8 @@ describe('StreamConfig class', () => {
       expect(config.getWhepUrl()).toBe('https://example.com/whep/stream-123')
       expect(config.getStatusUrl()).toBe('https://example.com/status/stream-123')
       expect(config.getDataUrl()).toBe('https://example.com/data/stream-123')
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
-      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/gateway/ai/stream/stream-123/stop')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
+      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/process/stream/stream-123/stop')
     })
 
     it('should handle empty URLs in response', () => {
@@ -115,7 +115,7 @@ describe('StreamConfig class', () => {
 
     describe('getStreamStartUrl', () => {
       it('should return base start URL without stream ID', () => {
-        expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
+        expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
       })
     })
 
@@ -133,11 +133,11 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'status-url',
           dataUrl: 'data-url',
-          stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
+          stopUrl: 'https://example.com:8088/process/stream/test-stream-456/stop',
           streamId: 'test-stream-456'
         })
 
-        expect(config.getStreamStopUrl()).toBe('https://example.com:8088/gateway/ai/stream/test-stream-456/stop')
+        expect(config.getStreamStopUrl()).toBe('https://example.com:8088/process/stream/test-stream-456/stop')
       })
     })
 
@@ -261,12 +261,12 @@ describe('StreamConfig class', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
-        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop',
+        stopUrl: 'https://example.com:8088/process/stream/stream_test-123_abc/stop',
         streamId: 'stream_test-123_abc'
       })
 
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
-      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
+      expect(config.getStreamStopUrl()).toBe('https://example.com:8088/process/stream/stream_test-123_abc/stop')
     })
 
     it('should handle empty stream ID', () => {
@@ -286,7 +286,7 @@ describe('StreamConfig class', () => {
         streamId: ''
       })
 
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
       expect(config.getStreamStopUrl()).toBe('')
     })
   })

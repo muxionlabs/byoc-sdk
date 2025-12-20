@@ -29,7 +29,7 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
       rtmpOutputUrl: 'rtmp-output-url',
       updateUrl: 'update-url',
       statusUrl: 'status-url',
-      dataUrl: 'https://gateway-usa.muxion.video/g/gateway/ai/stream/demo-stream-f0b2a44e/data',
+      dataUrl: 'https://gateway-usa.muxion.video/g/process/stream/demo-stream-f0b2a44e/data',
       stopUrl: 'stop-url',
       streamId: 'demo-stream-f0b2a44e'
     }
@@ -37,7 +37,7 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
     config.updateFromStreamStartResponse(mockResponse)
     const dataUrl = config.getDataUrl()
     
-    expect(dataUrl).toBe('https://gateway-usa.muxion.video/g/gateway/ai/stream/demo-stream-f0b2a44e/data')
+    expect(dataUrl).toBe('https://gateway-usa.muxion.video/g/process/stream/demo-stream-f0b2a44e/data')
   })
 
   it('should handle gateway URL with trailing slash', () => {
@@ -52,7 +52,7 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
       rtmpOutputUrl: 'rtmp-output-url',
       updateUrl: 'update-url',
       statusUrl: 'status-url',
-      dataUrl: 'https://gateway.example.com:8088/gateway/ai/stream/my-stream/data',
+      dataUrl: 'https://gateway.example.com:8088/process/stream/my-stream/data',
       stopUrl: 'stop-url',
       streamId: 'my-stream'
     }
@@ -60,9 +60,9 @@ describe('StreamConfig data URL construction (Issue #16)', () => {
     config.updateFromStreamStartResponse(mockResponse)
     const dataUrl = config.getDataUrl()
     
-    expect(dataUrl).toBe('https://gateway.example.com:8088/gateway/ai/stream/my-stream/data')
+    expect(dataUrl).toBe('https://gateway.example.com:8088/process/stream/my-stream/data')
     expect(dataUrl).not.toContain('/live/video-to-video/')  // Old incorrect path
-    expect(dataUrl).toContain('/gateway/ai/stream/')        // Correct path
+    expect(dataUrl).toContain('/process/stream/')        // Correct path
   })
 
   it('should return empty string when dataUrl is empty in response', () => {

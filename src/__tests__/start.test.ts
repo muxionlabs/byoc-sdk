@@ -157,10 +157,10 @@ describe('Stream Start API', () => {
         text: async () => ''
       })
 
-      const result = await stopStream('https://example.com/ai/stream/stream-123/stop')
+      const result = await stopStream('https://example.com/process/stream/stream-123/stop')
 
       expect(result).toBe(true)
-      expect(mockFetch).toHaveBeenCalledWith('https://example.com/ai/stream/stream-123/stop', {
+      expect(mockFetch).toHaveBeenCalledWith('https://example.com/process/stream/stream-123/stop', {
         method: 'POST'
       })
     })
@@ -173,14 +173,14 @@ describe('Stream Start API', () => {
         text: async () => 'Invalid request'
       })
 
-      await expect(stopStream('https://example.com/ai/stream/stream-123/stop'))
+      await expect(stopStream('https://example.com/process/stream/stream-123/stop'))
         .rejects.toThrow('Failed to stop stream (400): Invalid request')
     })
 
     it('should handle network errors', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-      await expect(stopStream('https://example.com/ai/stream/stream-123/stop'))
+      await expect(stopStream('https://example.com/process/stream/stream-123/stop'))
         .rejects.toThrow('Network error')
     })
 
@@ -191,7 +191,7 @@ describe('Stream Start API', () => {
         statusText: 'Not Found'
       })
 
-      const result = await stopStream('https://example.com/ai/stream/stream-123/stop')
+      const result = await stopStream('https://example.com/process/stream/stream-123/stop')
 
       expect(result).toBe(false)
     })

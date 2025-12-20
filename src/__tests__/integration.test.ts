@@ -60,7 +60,7 @@ describe('Integration tests', () => {
       expect(config.getWhipUrl()).toBe('http://localhost:8088/whip/stream-123')
       expect(config.getWhepUrl()).toBe('http://localhost:8088/whep/stream-123')
       expect(config.getDataUrl()).toBe('http://localhost:8088/data/stream-123')
-      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
+      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/process/stream/start')
     })
 
     it('should handle stream viewer connection', async () => {
@@ -143,7 +143,7 @@ describe('Integration tests', () => {
       })
 
       // This would typically be called through stream.update()
-      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
+      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/process/stream/start')
     })
 
     it('should handle stream status monitoring', async () => {
@@ -188,7 +188,7 @@ describe('Integration tests', () => {
       })
 
       // This would typically throw an error during stream.start()
-      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/gateway/ai/stream/start')
+      expect(config.getStreamStartUrl()).toBe('http://localhost:8088/process/stream/start')
     })
 
     it('should handle viewer connection failure', async () => {
@@ -224,6 +224,7 @@ describe('Integration tests', () => {
         updateUrl: 'https://example.com/update/stream-123',
         statusUrl: 'https://example.com/status/stream-123',
         dataUrl: 'https://example.com/data/stream-123',
+        stopUrl: 'https://example.com/process/stream/stream-123/stop',
         streamId: 'stream-123'
       }
 
@@ -283,11 +284,12 @@ describe('Integration tests', () => {
         updateUrl: 'https://example.com/update/stream-123',
         statusUrl: 'https://example.com/status/stream-123',
         dataUrl: 'https://example.com/data/stream-123',
+        stopUrl: 'https://example.com:8088/process/stream/stream-123/stop',
         streamId: 'stream-123'
       }
 
       config.updateFromStreamStartResponse(response1)
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
 
       const response2 = {
         whipUrl: 'https://example.com/whip/stream-456',
@@ -297,11 +299,12 @@ describe('Integration tests', () => {
         updateUrl: 'https://example.com/update/stream-456',
         statusUrl: 'https://example.com/status/stream-456',
         dataUrl: 'https://example.com/data/stream-456',
+        stopUrl: 'https://example.com:8088/process/stream/stream-456/stop',
         streamId: 'stream-456'
       }
 
       config.updateFromStreamStartResponse(response2)
-      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/gateway/ai/stream/start')
+      expect(config.getStreamStartUrl()).toBe('https://example.com:8088/process/stream/start')
     })
   })
 })
