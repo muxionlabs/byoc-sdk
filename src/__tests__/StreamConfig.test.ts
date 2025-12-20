@@ -133,11 +133,11 @@ describe('StreamConfig class', () => {
           updateUrl: 'update-url',
           statusUrl: 'status-url',
           dataUrl: 'data-url',
-          stopUrl: 'https://example.com:8088/gateway/ai/stream/test-stream-456/stop',
+          stopUrl: 'https://example.com:8088/process/stream/test-stream-456/stop',
           streamId: 'test-stream-456'
         })
 
-        expect(config.getStreamStopUrl()).toBe('https://example.com:8088/gateway/ai/stream/test-stream-456/stop')
+        expect(config.getStreamStopUrl()).toBe('https://example.com:8088/process/stream/test-stream-456/stop')
       })
     })
 
@@ -261,7 +261,7 @@ describe('StreamConfig class', () => {
         updateUrl: 'update-url',
         statusUrl: 'status-url',
         dataUrl: 'data-url',
-        stopUrl: 'https://example.com:8088/gateway/ai/stream/stream_test-123_abc/stop',
+        stopUrl: 'https://example.com:8088/process/stream/stream_test-123_abc/stop',
         streamId: 'stream_test-123_abc'
       })
 
