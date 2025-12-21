@@ -140,10 +140,6 @@ export interface StreamStartOptions {
   enableVideoIngress?: boolean
   /** Enable video output */
   enableVideoEgress?: boolean
-  /** Enable audio input */
-  enableAudioIngress?: boolean
-  /** Enable audio output */
-  enableAudioEgress?: boolean
   /** Enable data output stream */
   enableDataOutput?: boolean
   /** FPS limit */

@@ -287,7 +287,7 @@ export class Stream extends EventEmitter<StreamEventMap> {
             height: options.height,
             frameRate: options.fpsLimit
           } : false,
-          audio: options.enableAudioIngress !== false
+          audio: true
         })
       }
 
@@ -300,9 +300,7 @@ export class Stream extends EventEmitter<StreamEventMap> {
           height: options.height ? { ideal: options.height } : undefined,
           frameRate: options.fpsLimit ? { ideal: options.fpsLimit } : undefined
         }
-      }
 
-      if (options.enableAudioIngress !== false) {
         constraints.audio = {
           deviceId: options.microphoneDeviceId ? { exact: options.microphoneDeviceId } : undefined
         }

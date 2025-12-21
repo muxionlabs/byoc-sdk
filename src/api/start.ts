@@ -24,9 +24,7 @@ export async function startStream(
 
   const reqParams = {
     enable_video_ingress: resolveFlag(options.enableVideoIngress),
-    enable_audio_ingress: resolveFlag(options.enableAudioIngress),
     enable_video_egress: resolveFlag(options.enableVideoEgress),
-    enable_audio_egress: resolveFlag(options.enableAudioEgress),
     enable_data_output: resolveFlag(options.enableDataOutput)
   }
 

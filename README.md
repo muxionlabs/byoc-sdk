@@ -58,7 +58,7 @@ await stream.start({
   height: 720,
   fpsLimit: 30,
   enableVideoIngress: true,
-  enableAudioIngress: true,
+  enableVideoEgress: false,
   enableDataOutput: true,
   customParams: { prompts: 'Analyze this frame' }
 })

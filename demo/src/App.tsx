@@ -361,9 +361,7 @@ function App() {
       height: STREAM_HEIGHT,
       fpsLimit: STREAM_FPS,
       enableVideoIngress: true,
-      enableAudioIngress: true,
       enableVideoEgress: true,
-      enableAudioEgress: true,
       enableDataOutput: true,
       customParams: prompts ? { prompts } : {}
     }

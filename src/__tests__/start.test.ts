@@ -40,9 +40,7 @@ describe('Stream Start API', () => {
         height: 720,
         fpsLimit: 30,
         enableVideoIngress: true,
-        enableAudioIngress: true,
         enableVideoEgress: true,
-        enableAudioEgress: true,
         enableDataOutput: true
       }
 
